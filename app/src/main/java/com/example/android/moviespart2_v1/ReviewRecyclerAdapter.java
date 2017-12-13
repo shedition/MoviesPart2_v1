@@ -1,5 +1,7 @@
 package com.example.android.moviespart2_v1;
 
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +32,7 @@ public class ReviewRecyclerAdapter extends RecyclerView.Adapter<ReviewRecyclerAd
         public void bindReview(Review review){
             String aReview = review.getContent();
             content.setText(aReview);
+
         }
 
         @Override

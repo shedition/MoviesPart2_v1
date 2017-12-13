@@ -57,7 +57,7 @@ public class TrailerRecyclerAdapter extends RecyclerView.Adapter<TrailerRecycler
             String key;
 
             key = videos.get(pos).getTrailerID();
-            Toast.makeText(v.getContext(), "video key = " + key, Toast.LENGTH_LONG).show();
+            //Toast.makeText(v.getContext(), "video key = " + key, Toast.LENGTH_LONG).show();
             try {
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube://" + key));
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -83,25 +83,18 @@ public class TrailerRecyclerAdapter extends RecyclerView.Adapter<TrailerRecycler
         String key;
         mTrailers = trailers;
         Log.d("TrailerRecyclerAdapter", String.valueOf(mTrailers.size()));
-//        for(int i=0; i < trailers.size(); i++){
-//            key = trailers.get(i).getTrailerID();
-//            Log.d("TrailerRecyclerAdapter", "key=" + key);
-//            trailerKeys.add(key);
-//        }
     }
 
     @Override
     public TrailerViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
         View inflatedView = LayoutInflater.from(parent.getContext()).inflate(
                 R.layout.recyclerview_item_row_trailer, parent, false);
-        Log.d("TrailerRecyclerAdapter", " reached");
         return new TrailerViewHolder(inflatedView);
     }
 
     @Override
     public void onBindViewHolder(TrailerRecyclerAdapter.TrailerViewHolder holder, int position){
         Trailer aTrailer = mTrailers.get(position);
-        //holder.bindTrailer(aTrailer, count++);
         holder.bindTrailer(aTrailer, count++, mTrailers);
     }
 

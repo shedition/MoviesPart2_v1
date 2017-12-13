@@ -3,6 +3,8 @@
     <string name="sortby">Sort</string>
     <string name="mostpopular">Most popular</string>
     <string name="highestrated">Top rated</string>
+    <string name="favorites">My Favorite Movies</string>
+    <string name="markAsFavorite">Mark As Favorite</string>
     <string name="api_key">18b233b28421e37df0172410e899946d</string>
 
 

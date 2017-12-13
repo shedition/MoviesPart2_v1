@@ -4,4 +4,8 @@
     <color name="colorPrimaryDark">#10161D</color>
     <color name="colorAccent">#FAC740</color>
     <color name="colorText">#ffffff</color>
+    <color name="button_pressed">#fffd01</color>
+    <color name="button_default">#ffffff</color>
+    <color name="menu_background">#FFEB3B</color>
+    <color name="menu_text">#607D8B</color>
 </resources>

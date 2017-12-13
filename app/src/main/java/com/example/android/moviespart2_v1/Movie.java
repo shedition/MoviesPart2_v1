@@ -23,6 +23,7 @@ public class Movie implements Serializable{
     private static final String TAG_VOTE_AVG = "vote_average";
     private static final String TAG_RELEASE_DATE = "release_date";
     private static final String TAG_ID = "id";
+    private static final String VOTE_AVG_APPEND = " out of 10";
     private static final String TAG_RUNTIME = "runtime";
 
 
@@ -36,6 +37,7 @@ public class Movie implements Serializable{
     private String mReleaseYear;
     private String mURL;
     private String mId;
+    private String mRuntime;
     private ArrayList<HashMap<String, String>> movieList;
 
 
@@ -69,7 +71,15 @@ public class Movie implements Serializable{
     }
 
     public String getVoteAvg(){
-        return mVoteAvg;
+        if (mVoteAvg.length() > 3){
+            String newStr = mVoteAvg.substring(0, 2);
+            Log.d(TAG, "vote_avg substring = " + mVoteAvg);
+            mVoteAvg = newStr;
+            return (mVoteAvg + VOTE_AVG_APPEND);
+        } else {
+
+            return (mVoteAvg + VOTE_AVG_APPEND);
+        }
     }
 
     public String getOverview(){
@@ -92,13 +102,5 @@ public class Movie implements Serializable{
     public String getID() {
         return mId;
     }
-/*
-    public String getRuntime(){
-        String BASE_URL = "https://api.themoviedb.org/3/movie/";
 
-
-
-        return
-    }
-    */
 }

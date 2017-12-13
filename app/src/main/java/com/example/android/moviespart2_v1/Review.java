@@ -8,7 +8,6 @@ import java.io.Serializable;
 
 public class Review implements Serializable{
     private String TAG = "Review";
-    private static final String TAG_REVIEW_ID = "id";
     private String mContent;
 
     public Review(String content){

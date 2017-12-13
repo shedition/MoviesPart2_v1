@@ -75,6 +75,7 @@ public class DetailAPICall {
         callRuntimeAPI();
         callTrailerAPI();
         callReviewAPI();
+        Toast.makeText(mContext, "Movie ID = " + movieID, Toast.LENGTH_LONG).show();
     }
 
     private void buildRuntimeURL() {
@@ -97,7 +98,6 @@ public class DetailAPICall {
                     public void onResponse(JSONObject response) {
                         try {
                             sRuntime = String.valueOf(response.getInt(TAG_RUNTIME));
-                            Toast.makeText(mContext, "sRuntime = " + sRuntime, Toast.LENGTH_LONG).show();
                             runtimeTxtview.setText(sRuntime + " minutes");
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -127,12 +127,10 @@ public class DetailAPICall {
                         try {
                             JSONObject obj = new JSONObject(response.toString());
                             JSONArray arr = obj.getJSONArray("results");
-                            Log.d(TAG, arr.toString());
                             for (int i = 0; i < arr.length(); i++) {
                                 JSONObject videoResults = arr.getJSONObject(i);
                                 if (videoResults.getString("type").equals("Trailer")) {
                                     trailerKey = videoResults.getString("key");
-                                    Log.v(TAG, "trailerKey=" + trailerKey);
                                     Trailer aTrailer = new Trailer(trailerKey);
                                     trailerArrayList.add(aTrailer);
                                 }
@@ -154,10 +152,10 @@ public class DetailAPICall {
     }
 
 
-
     public void callReviewAPI() {
 
         contentArrayList = new ArrayList<Review>();
+
 
         JsonObjectRequest objectRequest = new JsonObjectRequest(Request.Method.GET, mReviewURL, null,
                 new Response.Listener<JSONObject>() {
@@ -166,16 +164,28 @@ public class DetailAPICall {
                         try {
                             JSONObject obj = new JSONObject(response.toString());
                             JSONArray arr = obj.getJSONArray("results");
-                            Log.d(TAG, arr.toString());
-                            for (int i = 0; i < arr.length(); i++) {
-                                JSONObject reviewResults = arr.getJSONObject(i);
-                                String aContent = reviewResults.getString("content");
-                                Log.d(TAG, "aContent = " + aContent);
-                                Review aReview = new Review(aContent);
-                                contentArrayList.add(aReview);
-                                //String aContent = reviewResults.getString("content");
-                                //Log.d(TAG, "aContent=" + aContent);
-                                //contentArrayList.add(aContent);
+                            if(arr.length() == 0){
+                                String noContent = "No reviews available";
+                                Review noReview = new Review(noContent);
+                                contentArrayList.add(noReview);
+                            } else {
+                                for (int i = 0; i < arr.length(); i++) {
+                                    JSONObject reviewResults = arr.getJSONObject(i);
+                                    if (reviewResults.isNull("content")) {
+                                        String noContent = "No reviews available";
+                                        Review noReview = new Review(noContent);
+                                        contentArrayList.add(noReview);
+                                        break;
+                                    } else {
+                                        String aContent = reviewResults.getString("content");
+                                        Log.d(TAG, "aContent = " + aContent);
+                                        Review aReview = new Review(aContent);
+                                        contentArrayList.add(aReview);
+                                    }
+
+                            }
+
+
                             }
                             mReviewRAdapter = new ReviewRecyclerAdapter(contentArrayList);
                             reviewRV.setAdapter(mReviewRAdapter);

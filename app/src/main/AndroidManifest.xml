@@ -13,8 +13,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.example.android.moviespart2_v1.MainActivity">
+        <activity android:name="com.example.android.moviespart2_v1.MainActivity"
+            android:launchMode="singleTask">
             <!-- support API level 15 or lower -->
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -23,6 +25,12 @@
         </activity>
         <activity android:name="com.example.android.moviespart2_v1.MovieActivity"
             android:parentActivityName=".MainActivity"/>
+        <activity android:name=".FavoriteMovieActivity"
+            android:parentActivityName=".MainActivity"/>
+        <provider
+            android:name="com.example.android.moviespart2_v1.data.AppContentProvider"
+            android:authorities="com.example.android.moviespart2_v1"
+            android:exported="false"></provider>
     </application>
 
 </manifest>

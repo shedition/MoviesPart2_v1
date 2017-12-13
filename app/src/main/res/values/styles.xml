@@ -11,6 +11,9 @@
         <item name="android:alertDialogTheme">@style/AlertDialogCustom</item>
     </style>
 
+
+
+
     <style name="AlertDialogCustom" parent="@android:style/Theme.Dialog">
         <item name="android:textColor">@color/colorText</item>
     </style>
