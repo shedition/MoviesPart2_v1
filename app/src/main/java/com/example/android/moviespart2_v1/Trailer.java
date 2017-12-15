@@ -18,13 +18,6 @@ public class Trailer implements Serializable {
 
         trailerID = trailerKey;
 
-        /**
-        try{
-            trailerID = trailerJSON.getString(TAG_TRAILER_ID);
-        } catch (JSONException e){
-            e.printStackTrace();
-        }
-         */
     }
 
     public String getTrailerID(){

@@ -3,11 +3,9 @@ package com.example.android.moviespart2_v1;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,29 +18,16 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
 import com.example.android.moviespart2_v1.data.FavMoviesContract;
-import com.example.android.moviespart2_v1.domain.MovieRuntime;
 import com.example.android.moviespart2_v1.util.DetailAPICall;
-import com.example.android.moviespart2_v1.util.RuntimeAPICall;
-import com.example.android.moviespart2_v1.util.TrailerAPICall;
 import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
-
-import static android.R.attr.bitmap;
-import static android.R.attr.data;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
-import static java.lang.Runtime.getRuntime;
 
 /**
  * Created by waiyi on 9/10/2017.
@@ -66,7 +51,7 @@ public class MovieActivity extends AppCompatActivity implements
     private static final String F_MOVIE_KEY = "FMOVIE";
     private static final String TAG = "MovieActivity";
     private Context mContext;
-    public int buttonState = 0;
+    public static int buttonState = 0;
 
     private static final String ON_CREATE = "onCreate";
     private static final String ON_START = "onStart";
@@ -86,29 +71,20 @@ public class MovieActivity extends AppCompatActivity implements
         setContentView(com.example.android.moviespart2_v1.R.layout.activity_movie);
 
         mSelectedMovie = (Movie) getIntent().getExtras().getSerializable(MOVIE_KEY);
-
-
         mMovieImageView = (ImageView) findViewById(R.id.imageViewPoster);
         Picasso.with(this).load(mSelectedMovie.getPosterImagePath()).into(mMovieImageView);
-
         mContext = getApplicationContext();
         mMovieTitle = (TextView) findViewById(R.id.movieTitle);
-
-
         mYearOfRelease = (TextView) findViewById(R.id.year);
         mRuntime = (TextView) findViewById(R.id.runtime);
         mUserRating = (TextView) findViewById(R.id.rating);
-
         mOverview = (TextView) findViewById(R.id.synopsis);
         mOverview.setMovementMethod(new ScrollingMovementMethod());
-
         mFavorite = (ImageView) findViewById(R.id.button);
         mFavorite.setSaveEnabled(true);
-
         mRVTrailer = (RecyclerView) findViewById(R.id.rvTrailers);
         LinearLayoutManager layoutManagerTrailer = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRVTrailer.setLayoutManager(layoutManagerTrailer);
-
         mRVReview = (RecyclerView) findViewById(R.id.reviews);
         LinearLayoutManager layoutManagerReview = new LinearLayoutManager(this,
                 LinearLayoutManager.VERTICAL, false);
@@ -117,18 +93,10 @@ public class MovieActivity extends AppCompatActivity implements
                 layoutManagerReview.getOrientation());
         dividerItemDecoration.setDrawable(mContext.getResources().getDrawable(R.drawable.line_divider));
         mRVReview.addItemDecoration(dividerItemDecoration);
-
-
-
         mMovieTitle.setText(mSelectedMovie.getTitle());
-
         mYearOfRelease.setText(mSelectedMovie.getReleaseYear());
-
-
         mUserRating.setText(mSelectedMovie.getVoteAvg());
-
         mOverview.setText(mSelectedMovie.getOverview());
-
 
         if (savedInstanceState != null && savedInstanceState.containsKey("mFavorite")) {
             Log.d(TAG, "viewTag = ");
@@ -159,9 +127,7 @@ public class MovieActivity extends AppCompatActivity implements
 
     public void onClickAddFavorite(View view) {
 
-        //  getLoaderManager().restartLoader(LOADER_ID, null, cursor);
         mFavorite = (ImageView) view;
-        //ContentResolver contentResolver = getContentResolver();
         Cursor cursor;
         Uri mUri = FavMoviesContract.FMovieEntry.CONTENT_URI;
         mUri = mUri.buildUpon().appendPath(mSelectedMovie.getID()).build();
@@ -208,7 +174,6 @@ public class MovieActivity extends AppCompatActivity implements
     }
 
     public void insertFavMovie() {
-        ContentResolver contentResolver = getContentResolver();
 
         String cvTtitle = mMovieTitle.getText().toString();
         String cvMovieid = mSelectedMovie.getID();
@@ -235,8 +200,6 @@ public class MovieActivity extends AppCompatActivity implements
             Log.d(TAG, "Heart: uri is not null");
             Toast.makeText(getBaseContext(), "uri.toString = " + uri.toString(), Toast.LENGTH_LONG).show();
         }
-
-
     }
 
     public byte[] getBitmapAsByteArray(Bitmap bitmap) {
@@ -268,22 +231,12 @@ public class MovieActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        //getSupportLoaderManager().restartLoader(LOADER_ID, null, this);
-//        if (buttonState == 0){
-//            mFavorite.setImageResource(R.drawable.icons8_heart_outline_white);
-//            mFavorite.setTag(R.drawable.icons8_heart_outline_white);
-//        } else {
-//            mFavorite.setImageResource(R.drawable.icons8_heart_outline_red);
-//            mFavorite.setTag(R.drawable.icons8_heart_outline_red);
-//        }
-
         logAndAppend(ON_RESUME);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
         logAndAppend(ON_PAUSE);
     }
 
@@ -291,21 +244,18 @@ public class MovieActivity extends AppCompatActivity implements
     @Override
     protected void onStop() {
         super.onStop();
-
         logAndAppend(ON_STOP);
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-
         logAndAppend(ON_RESTART);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
         logAndAppend(ON_DESTROY);
 
     }

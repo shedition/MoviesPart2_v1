@@ -5,6 +5,7 @@
     <string name="highestrated">Top rated</string>
     <string name="favorites">My Favorite Movies</string>
     <string name="markAsFavorite">Mark As Favorite</string>
+    <string name="taphearttoastmsg">Tap a movie and tap the heart icon to favorite the movie</string>
     <string name="api_key">18b233b28421e37df0172410e899946d</string>
 
 

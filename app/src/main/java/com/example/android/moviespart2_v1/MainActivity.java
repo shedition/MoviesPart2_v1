@@ -1,16 +1,12 @@
 package com.example.android.moviespart2_v1;
 
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -36,9 +32,7 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.example.android.moviespart2_v1.data.FavMoviesContract;
-import com.example.android.moviespart2_v1.util.SimpleItemTouchHelperCallback;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,8 +41,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.icu.lang.UCharacter.DecompositionType.SUPER;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
+import static android.R.attr.defaultHeight;
+import static android.R.attr.id;
+import static android.icu.lang.UCharacter.JoiningGroup.E;
 import static android.media.CamcorderProfile.get;
 
 /**
@@ -63,8 +58,8 @@ public class MainActivity extends AppCompatActivity implements
 
     private RecyclerView mRecyclerView;
     private GridLayoutManager mGridLayoutManager;
-    private ArrayList<Movie> mPosterImages;
-    private ArrayList<FavoriteMovie> mFavPosterImages;
+    private ArrayList<Movie> mPosterImages = new ArrayList<>();
+    private ArrayList<FavoriteMovie> mFavPosterImages = new ArrayList<>();
     private RecyclerAdapter mAdapter;
     private FavoriteMovieRecyclerAdapter fAdapter;
     private Context mContext;
@@ -78,8 +73,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final String FAV_ENDPOINT = "/movie/";
     private static final String API_KEY_PARAMETER = "?api_key=";
     private static String MY_API_KEY;
-    private String mPopURL;
-    private String mTopRatedURL;
+    private static String mPopURL;
+    private static String mTopRatedURL;
 
     private static final String TAG = "MainActivity";
 
@@ -93,69 +88,56 @@ public class MainActivity extends AppCompatActivity implements
     private static final String ON_DESTROY = "onDestroy";
     private static final String ON_SAVE_INSTANCE_STATE = "onSaveInstanceState";
 
-    private int SORT_MODE = 1;
-    private final String TAG_SORT = "sort";
-    private List<String> listOfFavoriteMovieIDs;
+    private final static String MENU_SELECTED = "selected";
+    private int selected = -1;
+    private static int fMovieFlag = 0;
+    MenuItem menuitem;
 
+    private List<String> listOfFavoriteMovieIDs = new ArrayList<>();
+    private boolean menuIsInflated;
     private static final int LOADER_ID = 1;
+
+    private int count = 0;
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(com.example.android.moviespart2_v1.R.menu.menu_main, menu);
         menu.findItem(R.id.sortby_popularity).setChecked(true);
         return true;
-    }
 
-    @Override
-    public boolean onPrepareOptionsMenu (Menu menu){
-        if (listOfFavoriteMovieIDs.size() == 0) {
-            Toast.makeText(mContext, "Tap the heart icon to favorite a movie.", Toast.LENGTH_LONG).show();
-            menu.findItem(R.id.favorites).setEnabled(false);
-        } else {
-            menu.findItem(R.id.favorites).setEnabled(true);
-        }
-        return true;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        if (savedInstanceState != null) {
+//            selected = savedInstanceState.getInt(MENU_SELECTED);
+//            invalidateOptionsMenu();
+//        }
         setContentView(com.example.android.moviespart2_v1.R.layout.activity_main);
         logAndAppend(ON_CREATE);
 
         mContext = getApplicationContext();
         mActivity = MainActivity.this;
 
+
+
         MY_API_KEY = mContext.getString(R.string.api_key);
-
-        mRecyclerView = (RecyclerView) findViewById(com.example.android.moviespart2_v1.R.id.recyclerView);
-        mItemImage = (ImageView) findViewById(com.example.android.moviespart2_v1.R.id.item_image);
-
         mPopURL = BASE_URL + POP_ENDPOINT + API_KEY_PARAMETER + MY_API_KEY;
         mTopRatedURL = BASE_URL + TOP_RATED_ENDPOINT + API_KEY_PARAMETER + MY_API_KEY;
 
+        mRecyclerView = (RecyclerView) findViewById(com.example.android.moviespart2_v1.R.id.recyclerView);
+        mGridLayoutManager = new GridLayoutManager(this, 2);
+        mRecyclerView.setLayoutManager(mGridLayoutManager);
+        mItemImage = (ImageView) findViewById(com.example.android.moviespart2_v1.R.id.item_image);
         requestQueue = VolleySingleton.getInstance(this).getRequestQueue();
+        volleyJsonObjectRequest(mPopURL);
+        getSupportLoaderManager().initLoader(LOADER_ID, null, this);
 
-        if (savedInstanceState != null && savedInstanceState.containsKey("SORT_MODE")) {
-            switch (savedInstanceState.getInt("SORT_MODE")) {
-                case 1:
-                    volleyJsonObjectRequest(mPopURL);
-                    break;
-                case 2:
-                    volleyJsonObjectRequest(mTopRatedURL);
-                    break;
-                case 3:
-                    if (listOfFavoriteMovieIDs.size() != 0) {
-                        volleyGetFavoriteMovies();
-                    }
-                    break;
-            }
-        } else {
-            volleyJsonObjectRequest(mPopURL);
-        }
-//        getSupportLoaderManager().initLoader(LOADER_ID, null, this);
+
     }
 
     @Override
@@ -167,31 +149,31 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case com.example.android.moviespart2_v1.R.id.sortby_highestrated:
-                if (item.isChecked())
-                    item.setChecked(false);
-                else item.setChecked(true);
-                volleyJsonObjectRequest(mTopRatedURL);
-                SORT_MODE = 1;
-                break;
+        int id = item.getItemId();
+
+        switch (id) {
             case com.example.android.moviespart2_v1.R.id.sortby_popularity:
                 if (item.isChecked())
                     item.setChecked(false);
                 else item.setChecked(true);
+                selected = id;
                 volleyJsonObjectRequest(mPopURL);
-                SORT_MODE = 2;
+                break;
+            case com.example.android.moviespart2_v1.R.id.sortby_highestrated:
+                if (item.isChecked())
+                    item.setChecked(false);
+                else item.setChecked(true);
+                selected = id;
+                volleyJsonObjectRequest(mTopRatedURL);
                 break;
             case R.id.favorites:
-                getSupportLoaderManager().initLoader(LOADER_ID, null, this);
-                if (!volleyGetFavoriteMovies()) {
-                    item.setEnabled(false);
-                } else {
-                    item.setEnabled(true);
-                    item.setChecked(true);
-                }
-                SORT_MODE = 3;
+                selected = id;
+                if (item.isChecked())
+                    item.setChecked(false);
+                else item.setChecked(true);
+                volleyGetFavoriteMovies();
                 break;
+
         }
         return super.onOptionsItemSelected(item);
     }
@@ -199,24 +181,57 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putInt("SORT_MODE", SORT_MODE);
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putInt(MENU_SELECTED, selected);
         logAndAppend("onSaveInstanceState");
         super.onSaveInstanceState(savedInstanceState);
+
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        SORT_MODE = savedInstanceState.getInt("SORT_MODE");
+        super.onRestoreInstanceState(savedInstanceState);
+
+        selected = savedInstanceState.getInt(MENU_SELECTED);
         logAndAppend("onRestoreInstanceState");
         super.onRestoreInstanceState(savedInstanceState);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        count++;
+
+        if (selected == -1) {
+            return true;
+        }
+
+        switch (selected) {
+            case R.id.sortby_popularity:
+                menuitem = (MenuItem) menu.findItem(R.id.sortby_popularity);
+                menuitem.setChecked(true);
+                volleyJsonObjectRequest(mPopURL);
+                break;
+            case R.id.sortby_highestrated:
+                menuitem = (MenuItem) menu.findItem(R.id.sortby_highestrated);
+                menuitem.setChecked(true);
+                volleyJsonObjectRequest(mTopRatedURL);
+                break;
+            case R.id.favorites:
+                menuitem = (MenuItem) menu.findItem(R.id.favorites);
+                menuitem.setChecked(true);
+                volleyGetFavoriteMovies();
+                break;
+
+        }
+
+        logAndAppend("onPrepareOptionsMenu");
+        logAndAppend("count = " + count);
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
 
     private void volleyJsonObjectRequest(String mURL) {
-
-        mGridLayoutManager = new GridLayoutManager(this, 2);
-        mRecyclerView.setLayoutManager(mGridLayoutManager);
-        mPosterImages = new ArrayList<>();
 
         final Context context = this;
 
@@ -226,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements
                     public void onResponse(JSONObject response) {
                         //Log.d(TAG, response.toString());
                         try {
+                            mPosterImages.clear();
                             JSONObject obj = new JSONObject(response.toString());
                             JSONArray arr = obj.getJSONArray("results");
                             Log.d(TAG, arr.toString());
@@ -286,155 +302,114 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private boolean volleyGetFavoriteMovies() {
-//        mGridLayoutManager = new GridLayoutManager(this, 2);
-//        mRecyclerView.setLayoutManager(mGridLayoutManager);
-        mFavPosterImages = new ArrayList<>();
+
         String mFavMovieURL = BASE_URL + FAV_ENDPOINT;
         final Context context = this;
 
-//        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT |
-//                ItemTouchHelper.RIGHT)) {
-//
-//            @Override
-//            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
-//                                  RecyclerView.ViewHolder target){
-//                return false;
-//            }
-//
-//            @Override
-//            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction){
-//                int id = viewHolder.getAdapterPosition();
-//                Log.d(TAG, "id of viewholder swiped = " + id);
-//                Toast.makeText(mContext, "id of viewholder = " + id, Toast.LENGTH_LONG).show();
-//                String movieID = listOfFavoriteMovieIDs.get(id);
-//                Log.d(TAG, "movieID to delete = " + movieID);
-//                Toast.makeText(mContext, "movieID to delete = " + movieID, Toast.LENGTH_LONG).show();
-//                Uri uri = FavMoviesContract.FMovieEntry.CONTENT_URI;
-//                uri = uri.buildUpon().appendPath(movieID).build();
-//                getContentResolver().delete(uri, null, null);
-//                getSupportLoaderManager().restartLoader(LOADER_ID, null, MainActivity.this);
-//            }
-//
-//        }).attachToRecycler(mRecyclerView);
-
-//        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(fAdapter);
-//        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-//        touchHelper.attachToRecyclerView(mRecyclerView);
-
         if (listOfFavoriteMovieIDs.size() == 0) {
-            Toast.makeText(mContext, "Tap the heart icon to favorite a movie.", Toast.LENGTH_LONG).show();
+            fMovieFlag = 0;
+            Toast.makeText(mContext, R.string.taphearttoastmsg, Toast.LENGTH_LONG).show();
+            mRecyclerView.setAdapter(fAdapter);
             return false;
-        }
+        } else {
+            mFavPosterImages.clear();
 
-        for (int i = 0; i < listOfFavoriteMovieIDs.size(); i++) {
-            String fURL = mFavMovieURL + listOfFavoriteMovieIDs.get(i) + API_KEY_PARAMETER + MY_API_KEY;
-            Log.d(TAG, "mFavMovieURL = " + mFavMovieURL);
+            for (int j = 0; j < listOfFavoriteMovieIDs.size(); j++) {
 
-            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, fURL, null,
-                    new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            try {
-                                JSONObject obj = new JSONObject(response.toString());
-                                FavoriteMovie favoriteMovie = new FavoriteMovie(obj);
-                                mFavPosterImages.add(favoriteMovie);
+                String fURL = mFavMovieURL + listOfFavoriteMovieIDs.get(j) + API_KEY_PARAMETER + MY_API_KEY;
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, fURL, null,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+                                    JSONObject obj = new JSONObject(response.toString());
+                                    FavoriteMovie favoriteMovie = new FavoriteMovie(obj);
+                                    mFavPosterImages.add(favoriteMovie);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
                                 fAdapter = new FavoriteMovieRecyclerAdapter(mFavPosterImages);
                                 mRecyclerView.setAdapter(fAdapter);
-//                                ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(fAdapter);
-//                                ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-//                                touchHelper.attachToRecyclerView(mRecyclerView);
 
-                            } catch (JSONException e) {
-                                e.printStackTrace();
                             }
+                        }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                        if (error instanceof NoConnectionError || error instanceof NetworkError
+                                || error instanceof TimeoutError) {
 
 
+                            ContextThemeWrapper ctw = new ContextThemeWrapper(context,
+                                    com.example.android.moviespart2_v1.R.style.AlertDialogCustom);
+
+                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctw);
+                            alertDialogBuilder.setTitle("Network Communication Error");
+                            alertDialogBuilder
+                                    .setMessage("Please check your Internet connection.")
+                                    .setCancelable(true)
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            MainActivity.this.finish();
+                                        }
+                                    });
+
+                            AlertDialog alertDialog = alertDialogBuilder.create();
+                            alertDialog.show();
+                            alertDialog.getButton(alertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
+
+                        } else if (error instanceof ParseError) {
+                            Toast.makeText(getApplicationContext(), "Parse error!",
+                                    Toast.LENGTH_LONG).show();
                         }
-                    }, new Response.ErrorListener() {
 
-                @Override
-                public void onErrorResponse(VolleyError error) {
+                        VolleyLog.d(TAG, "Error: " + error.getMessage());
+                    }
+                });
 
-                    if (error instanceof NoConnectionError || error instanceof NetworkError
-                            || error instanceof TimeoutError) {
+//                requestQueue.getCache().clear();
 
 
-                        ContextThemeWrapper ctw = new ContextThemeWrapper(context,
-                                com.example.android.moviespart2_v1.R.style.AlertDialogCustom);
+                requestQueue.add(jsonObjectRequest);
 
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctw);
-                        alertDialogBuilder.setTitle("Network Communication Error");
-                        alertDialogBuilder
-                                .setMessage("Please check your Internet connection.")
-                                .setCancelable(true)
-                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        MainActivity.this.finish();
-                                    }
-                                });
+                fMovieFlag = 1;
 
-                        AlertDialog alertDialog = alertDialogBuilder.create();
-                        alertDialog.show();
-                        alertDialog.getButton(alertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
+                ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0,
+                        ItemTouchHelper.RIGHT | ItemTouchHelper.LEFT) {
 
-                    } else if (error instanceof ParseError) {
-                        Toast.makeText(getApplicationContext(), "Parse error!",
-                                Toast.LENGTH_LONG).show();
+                    @Override
+                    public boolean isItemViewSwipeEnabled() {
+                        return true;
                     }
 
-                    VolleyLog.d(TAG, "Error: " + error.getMessage());
-                }
-            });
+                    @Override
+                    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                        return false;
+                    }
+
+                    @Override
+                    public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
+                        final int position = viewHolder.getAdapterPosition();
+                        String movieID = listOfFavoriteMovieIDs.get(position);
+                        fAdapter.remove(position);
+
+                        Uri uri = FavMoviesContract.FMovieEntry.CONTENT_URI;
+                        uri = uri.buildUpon().appendPath(movieID).build();
+                        getContentResolver().delete(uri, null, null);
+                        getSupportLoaderManager().restartLoader(LOADER_ID, null, MainActivity.this);
 
 
-            requestQueue.add(jsonObjectRequest);
+                    }
+                };
 
-            ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0,
-                    ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+                ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+                itemTouchHelper.attachToRecyclerView(mRecyclerView);
+            }
 
-                @Override
-                public boolean isItemViewSwipeEnabled(){
-                    return true;
-                }
-
-
-                @Override
-                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                    return false;
-                }
-
-                @Override
-                public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
-                    final int position = viewHolder.getAdapterPosition();
-                    Log.d(TAG, "IDlistBeginning: " + listOfFavoriteMovieIDs.size());
-                    String movieID = listOfFavoriteMovieIDs.get(position);
-                    Log.d(TAG, "onSwiped string = " + movieID);
-//                    listOfFavoriteMovieIDs.remove(position);
-                    Log.d(TAG, "IDListAfterSwiped " + listOfFavoriteMovieIDs.size());
-                    fAdapter.remove(position);
-
-//                    fAdapter.notifyItemRemoved(position);
-//                    fAdapter.notifyItemRangeChanged(position, fAdapter.getItemCount());
-                    Uri uri = FavMoviesContract.FMovieEntry.CONTENT_URI;
-                    uri = uri.buildUpon().appendPath(movieID).build();
-                    getContentResolver().delete(uri, null, null);
-                    getSupportLoaderManager().restartLoader(LOADER_ID, null, MainActivity.this);
-
-                }
-            };
-
-            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
-            itemTouchHelper.attachToRecyclerView(mRecyclerView);
-
+            return true;
         }
-
-//        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(fAdapter);
-//        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-//        touchHelper.attachToRecyclerView(mRecyclerView);
-
-        return true;
-
     }
 
     @Override
@@ -448,34 +423,29 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-
         logAndAppend(ON_PAUSE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-
         logAndAppend(ON_STOP);
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-
         logAndAppend(ON_RESTART);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
         logAndAppend(ON_DESTROY);
     }
 
     private void logAndAppend(String lifecycleEvent) {
         Log.d(TAG, "Lifecycle Event: " + lifecycleEvent);
-
     }
 
     @Override
@@ -505,7 +475,6 @@ public class MainActivity extends AppCompatActivity implements
                     Log.e(TAG, "Failed to asynchronously load data.");
                     e.printStackTrace();
                     return null;
-
                 }
             }
 
@@ -526,54 +495,17 @@ public class MainActivity extends AppCompatActivity implements
                         FavMoviesContract.FMovieEntry.COLUMN_MOVIEID));
                 listOfFavoriteMovieIDs.add(mID);
             } while (data.moveToNext());
-//            invalidateOptionsMenu();
+            fMovieFlag = 1;
         } else {
-            invalidateOptionsMenu();
+            fMovieFlag = 0;
+            Toast.makeText(mContext, R.string.taphearttoastmsg, Toast.LENGTH_LONG).show();
         }
-
-//        data.close();
-
     }
 
     @Override
     public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
-
+        logAndAppend("onLoaderReset");
     }
-
-
-//    private void activateSwipeToDelete() {
-//        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
-//                0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-//            @Override
-//            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
-//                                  RecyclerView.ViewHolder target) {
-//                return false;
-//            }
-//
-//            @Override
-//            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-//                ContentResolver contentResolver = getContentResolver();
-//                int id = viewHolder.itemView.getId();
-//                String movieId = listOfFavoriteMovieIDs.get(id);
-//                Uri uri = FavMoviesContract.FMovieEntry.CONTENT_URI;
-//                uri = uri.buildUpon().appendPath(movieId).build();
-//                contentResolver.delete(uri, null, null);
-//
-//            }
-//
-//            @Override
-//            public boolean isLongPressDragEnabled() {
-//                return true;
-//            }
-//
-//            @Override
-//            public boolean isItemViewSwipeEnabled() {
-//                return true;
-//            }
-//        });
-//        //volleyGetFavoriteMovies();
-//    }
-
 
 }
 
