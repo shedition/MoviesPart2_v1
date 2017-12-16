@@ -1,8 +1,10 @@
 package com.example.android.moviespart2_v1;
 
+import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -28,6 +30,7 @@ import com.example.android.moviespart2_v1.util.DetailAPICall;
 import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 
 /**
  * Created by waiyi on 9/10/2017.
@@ -350,6 +353,27 @@ public class MovieActivity extends AppCompatActivity implements
         loaderLog("onLoaderReset");
         Log.d(TAG, "onLoaderReset");
         Toast.makeText(mContext, "onLoaderReset", Toast.LENGTH_LONG).show();
+
+    }
+
+    public boolean shareTrailer(){
+        DetailAPICall getFirstTrailer = new DetailAPICall();
+        ArrayList<Trailer> trailerArrayList = getFirstTrailer.getTrailerArrayList();
+        if (trailerArrayList.size() >= 1){
+            String pageUrl = "vnd.youtube://" + trailerArrayList.get(0).getTrailerID();
+            Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.putExtra(Intent.EXTRA_TEXT, pageUrl);
+
+            try {
+                startActivity(Intent.createChooser(intent, "Share:"));
+            }catch (ActivityNotFoundException e) {
+                Toast.makeText(mContext, "Sorry. Unable to share at this time.", Toast.LENGTH_LONG).show();
+                return false;
+            }
+
+        }
+        return true;
 
     }
 }

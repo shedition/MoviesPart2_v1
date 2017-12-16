@@ -130,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements
         mTopRatedURL = BASE_URL + TOP_RATED_ENDPOINT + API_KEY_PARAMETER + MY_API_KEY;
 
         mRecyclerView = (RecyclerView) findViewById(com.example.android.moviespart2_v1.R.id.recyclerView);
+        mRecyclerView.setHasFixedSize(true);
         mGridLayoutManager = new GridLayoutManager(this, 2);
         mRecyclerView.setLayoutManager(mGridLayoutManager);
         mItemImage = (ImageView) findViewById(com.example.android.moviespart2_v1.R.id.item_image);
@@ -371,7 +372,8 @@ public class MainActivity extends AppCompatActivity implements
 
 //                requestQueue.getCache().clear();
 
-
+                Toast.makeText(mContext, "To delete, do a long swipe from left to right, or right to left.",
+                        Toast.LENGTH_LONG).show();
                 requestQueue.add(jsonObjectRequest);
 
                 fMovieFlag = 1;

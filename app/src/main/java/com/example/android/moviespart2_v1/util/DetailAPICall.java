@@ -1,12 +1,15 @@
 package com.example.android.moviespart2_v1.util;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +34,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import static android.R.attr.start;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
 import static com.example.android.moviespart2_v1.R.id.recyclerView;
 
@@ -54,6 +58,7 @@ public class DetailAPICall {
     private String trailerKey;
     private TrailerRecyclerAdapter mTrailerRAdapter;
     private ReviewRecyclerAdapter mReviewRAdapter;
+    private int trailerCount = 0;
 
     private static final String TAG_RUNTIME = "runtime";
     private static final String BASE_URL = "https://api.themoviedb.org/3/movie/";
@@ -76,6 +81,9 @@ public class DetailAPICall {
         callTrailerAPI();
         callReviewAPI();
         Toast.makeText(mContext, "Movie ID = " + movieID, Toast.LENGTH_LONG).show();
+    }
+
+    public DetailAPICall() {
     }
 
     private void buildRuntimeURL() {
@@ -120,6 +128,7 @@ public class DetailAPICall {
 
         trailerArrayList = new ArrayList<Trailer>();
 
+
         JsonObjectRequest jsonObjRequest = new JsonObjectRequest(Request.Method.GET, mTrailerURL, null,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -133,8 +142,10 @@ public class DetailAPICall {
                                     trailerKey = videoResults.getString("key");
                                     Trailer aTrailer = new Trailer(trailerKey);
                                     trailerArrayList.add(aTrailer);
+//                                    trailerCount++;
                                 }
                             }
+
                             mTrailerRAdapter = new TrailerRecyclerAdapter(trailerArrayList);
                             trailerRV.setAdapter(mTrailerRAdapter);
 
@@ -164,7 +175,7 @@ public class DetailAPICall {
                         try {
                             JSONObject obj = new JSONObject(response.toString());
                             JSONArray arr = obj.getJSONArray("results");
-                            if(arr.length() == 0){
+                            if (arr.length() == 0) {
                                 String noContent = "No reviews available";
                                 Review noReview = new Review(noContent);
                                 contentArrayList.add(noReview);
@@ -183,7 +194,7 @@ public class DetailAPICall {
                                         contentArrayList.add(aReview);
                                     }
 
-                            }
+                                }
 
 
                             }
@@ -236,4 +247,31 @@ public class DetailAPICall {
         VolleyLog.d(TAG, "Error: " + error.getMessage());
 
     }
+
+    public ArrayList<Trailer> getTrailerArrayList(){
+        return trailerArrayList;
+    }
+
+
 }
+
+
+//    public boolean shareTrailer(){
+//        if (trailerArrayList.size() >= 1){
+//            String pageUrl = "vnd.youtube://" + trailerArrayList.get(0).getTrailerID();
+//            Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+//            intent.setType("text/plain");
+//            intent.putExtra(Intent.EXTRA_TEXT, pageUrl);
+//
+//            try {
+//                startActivity(Intent.createChooser(intent, "Select an action"));
+//            }catch (ActivityNotFoundException e) {
+//                Toast.makeText(mContext, "Sorry. Unable to share at this time.", Toast.LENGTH_LONG).show();
+//                return false;
+//            }
+//
+//        }
+//        return true;
+//
+//    }
+
