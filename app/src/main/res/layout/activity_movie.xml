@@ -4,11 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="false"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:fillViewport="false"
     tools:context="com.example.android.moviespart2_v1.MovieActivity">
 
     <android.support.constraint.ConstraintLayout
@@ -103,6 +103,7 @@
             app:layout_constraintLeft_toLeftOf="@+id/rating"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/rating" />
+
 
         <TextView
             android:id="@+id/synopsis"

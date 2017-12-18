@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
@@ -17,12 +18,13 @@ import java.util.ArrayList;
  * Created by waiyi on 12/10/2017.
  */
 
-public class FavoriteMovieRecyclerAdapter extends RecyclerView.Adapter<FavoriteMovieRecyclerAdapter.VHolder>
-         {
+public class FavoriteMovieRecyclerAdapter extends RecyclerView.Adapter<FavoriteMovieRecyclerAdapter.VHolder> {
 
     private static final String TAG = "FAdapter";
-
     private ArrayList<FavoriteMovie> mFavoriteMovies;
+//    private AdapterView.OnItemClickListener onItemClickListener;
+//    private AdapterView.OnItemLongClickListener onItemLongClickListener;
+//    private OfflineFavMovieDetails offlineFavMovieDetails;
 
     public static class VHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private ImageView mImage;
@@ -42,6 +44,11 @@ public class FavoriteMovieRecyclerAdapter extends RecyclerView.Adapter<FavoriteM
             showMovieIntent.putExtra(F_MOVIE_KEY, favoriteMovie);
             context.startActivity(showMovieIntent);
         }
+
+//        @Override
+//        public boolean onLongClick(View v){
+//
+//        }
 
         public void bindMovie(FavoriteMovie fMovie) {
             favoriteMovie = fMovie;
@@ -68,9 +75,9 @@ public class FavoriteMovieRecyclerAdapter extends RecyclerView.Adapter<FavoriteM
         holder.bindMovie(movie);
     }
 
-    public void remove(int position){
+    public void remove(int position) {
         FavoriteMovie amovie = mFavoriteMovies.get(position);
-        if (mFavoriteMovies.contains(amovie)){
+        if (mFavoriteMovies.contains(amovie)) {
             mFavoriteMovies.remove(position);
             notifyItemRemoved(position);
         }
@@ -80,8 +87,6 @@ public class FavoriteMovieRecyclerAdapter extends RecyclerView.Adapter<FavoriteM
     public int getItemCount() {
         return mFavoriteMovies.size();
     }
-
-
 
 
 }

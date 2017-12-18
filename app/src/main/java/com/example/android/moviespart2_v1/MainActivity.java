@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.support.v4.app.LoaderManager;
@@ -41,6 +43,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.R.attr.data;
 import static android.R.attr.defaultHeight;
 import static android.R.attr.id;
 import static android.icu.lang.UCharacter.JoiningGroup.E;
@@ -60,8 +63,12 @@ public class MainActivity extends AppCompatActivity implements
     private GridLayoutManager mGridLayoutManager;
     private ArrayList<Movie> mPosterImages = new ArrayList<>();
     private ArrayList<FavoriteMovie> mFavPosterImages = new ArrayList<>();
+    private List<String> listOfFavoriteMovieIDs = new ArrayList<>();
+    //private List<OfflineFavMovieDetails> dataList;
+    private ArrayList<OfflineFavMovieDetails> dataList = new ArrayList<>();
     private RecyclerAdapter mAdapter;
     private FavoriteMovieRecyclerAdapter fAdapter;
+    private OfflineRecyclerAdapter oAdapter;
     private Context mContext;
     private ImageView mItemImage;
     private Activity mActivity;
@@ -93,11 +100,15 @@ public class MainActivity extends AppCompatActivity implements
     private static int fMovieFlag = 0;
     MenuItem menuitem;
 
-    private List<String> listOfFavoriteMovieIDs = new ArrayList<>();
+
+
+
     private boolean menuIsInflated;
     private static final int LOADER_ID = 1;
-
+    private static final int LOADER_ID_2 = 2;
+    private boolean hideTrashMenu = true;
     private int count = 0;
+    private MenuItem trashMenuItem;
 
 
     @Override
@@ -106,6 +117,11 @@ public class MainActivity extends AppCompatActivity implements
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(com.example.android.moviespart2_v1.R.menu.menu_main, menu);
         menu.findItem(R.id.sortby_popularity).setChecked(true);
+        if (hideTrashMenu == true) {
+            trashMenuItem = menu.findItem(R.id.menu_trash);
+            trashMenuItem.setVisible(false);
+            hideTrashMenu = false;
+        }
         return true;
 
     }
@@ -113,16 +129,12 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        if (savedInstanceState != null) {
-//            selected = savedInstanceState.getInt(MENU_SELECTED);
-//            invalidateOptionsMenu();
-//        }
+
         setContentView(com.example.android.moviespart2_v1.R.layout.activity_main);
         logAndAppend(ON_CREATE);
 
         mContext = getApplicationContext();
         mActivity = MainActivity.this;
-
 
 
         MY_API_KEY = mContext.getString(R.string.api_key);
@@ -158,6 +170,8 @@ public class MainActivity extends AppCompatActivity implements
                     item.setChecked(false);
                 else item.setChecked(true);
                 selected = id;
+                hideTrashMenu = true;
+                trashMenuItem.setVisible(false);
                 volleyJsonObjectRequest(mPopURL);
                 break;
             case com.example.android.moviespart2_v1.R.id.sortby_highestrated:
@@ -165,14 +179,22 @@ public class MainActivity extends AppCompatActivity implements
                     item.setChecked(false);
                 else item.setChecked(true);
                 selected = id;
+                hideTrashMenu = true;
+                trashMenuItem.setVisible(false);
                 volleyJsonObjectRequest(mTopRatedURL);
                 break;
             case R.id.favorites:
                 selected = id;
-                if (item.isChecked())
+                hideTrashMenu = false;
+                if (item.isChecked()) {
                     item.setChecked(false);
-                else item.setChecked(true);
-                volleyGetFavoriteMovies();
+                    Toast.makeText(mContext, "Already checked", Toast.LENGTH_SHORT).show();
+                } else {
+                    item.setChecked(true);
+                    volleyGetFavoriteMovies();
+                }
+                trashMenuItem.setVisible(true);
+
                 break;
 
         }
@@ -185,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putInt(MENU_SELECTED, selected);
         logAndAppend("onSaveInstanceState");
-        super.onSaveInstanceState(savedInstanceState);
+//        super.onSaveInstanceState(savedInstanceState);
 
     }
 
@@ -195,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements
 
         selected = savedInstanceState.getInt(MENU_SELECTED);
         logAndAppend("onRestoreInstanceState");
-        super.onRestoreInstanceState(savedInstanceState);
+//        super.onRestoreInstanceState(savedInstanceState);
     }
 
     @Override
@@ -211,16 +233,20 @@ public class MainActivity extends AppCompatActivity implements
                 menuitem = (MenuItem) menu.findItem(R.id.sortby_popularity);
                 menuitem.setChecked(true);
                 volleyJsonObjectRequest(mPopURL);
+                trashMenuItem.setVisible(false);
                 break;
             case R.id.sortby_highestrated:
                 menuitem = (MenuItem) menu.findItem(R.id.sortby_highestrated);
                 menuitem.setChecked(true);
                 volleyJsonObjectRequest(mTopRatedURL);
+                trashMenuItem.setVisible(false);
                 break;
             case R.id.favorites:
                 menuitem = (MenuItem) menu.findItem(R.id.favorites);
                 menuitem.setChecked(true);
                 volleyGetFavoriteMovies();
+                trashMenuItem.setVisible(true);
+
                 break;
 
         }
@@ -340,26 +366,28 @@ public class MainActivity extends AppCompatActivity implements
 
                         if (error instanceof NoConnectionError || error instanceof NetworkError
                                 || error instanceof TimeoutError) {
+                            getSupportLoaderManager().restartLoader(LOADER_ID, null, MainActivity.this);
+                            oAdapter = new OfflineRecyclerAdapter(dataList);
+                            mRecyclerView.setAdapter(oAdapter);
 
-
-                            ContextThemeWrapper ctw = new ContextThemeWrapper(context,
-                                    com.example.android.moviespart2_v1.R.style.AlertDialogCustom);
-
-                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctw);
-                            alertDialogBuilder.setTitle("Network Communication Error");
-                            alertDialogBuilder
-                                    .setMessage("Please check your Internet connection.")
-                                    .setCancelable(true)
-                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            MainActivity.this.finish();
-                                        }
-                                    });
-
-                            AlertDialog alertDialog = alertDialogBuilder.create();
-                            alertDialog.show();
-                            alertDialog.getButton(alertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
+//                            ContextThemeWrapper ctw = new ContextThemeWrapper(context,
+//                                    com.example.android.moviespart2_v1.R.style.AlertDialogCustom);
+//
+//                            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ctw);
+//                            alertDialogBuilder.setTitle("Network Communication Error");
+//                            alertDialogBuilder
+//                                    .setMessage("Please check your Internet connection.")
+//                                    .setCancelable(true)
+//                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                                        @Override
+//                                        public void onClick(DialogInterface dialog, int which) {
+//                                            MainActivity.this.finish();
+//                                        }
+//                                    });
+//
+//                            AlertDialog alertDialog = alertDialogBuilder.create();
+//                            alertDialog.show();
+//                            alertDialog.getButton(alertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
 
                         } else if (error instanceof ParseError) {
                             Toast.makeText(getApplicationContext(), "Parse error!",
@@ -373,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements
 //                requestQueue.getCache().clear();
 
                 Toast.makeText(mContext, "To delete, do a long swipe from left to right, or right to left.",
-                        Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_SHORT).show();
                 requestQueue.add(jsonObjectRequest);
 
                 fMovieFlag = 1;
@@ -453,6 +481,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public AsyncTaskLoader<Cursor> onCreateLoader(int id, final Bundle loaderArgs) {
         return new AsyncTaskLoader<Cursor>(this) {
+
             Cursor mFMovieData = null;
 
             @Override
@@ -486,27 +515,124 @@ public class MainActivity extends AppCompatActivity implements
             }
         };
     }
+//        switch (id) {
+//            case 1:
+//                return new AsyncTaskLoader<Cursor>(this) {
+//                    @Override
+//                    public Cursor loadInBackground() {
+//                        try {
+//                            return getContentResolver().query(FavMoviesContract.FMovieEntry.CONTENT_URI,
+//                                    null,
+//                                    null,
+//                                    null,
+//                                    null);
+//                        } catch (Exception e) {
+//                            Log.e(TAG, "Failed to asynchronously load data.");
+//                            e.printStackTrace();
+//                            return null;
+//                        }
+//                    }
+//                };
+////            break;
+//            case 2:
+//                return new AsyncTaskLoader<Cursor>(this) {
+//                    @Override
+//                    public Cursor loadInBackground() {
+//                        return null;
+//                    }
+//                };
+//            break;
+//
+//        }
+//    }
+
 
     @Override
     public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor data) {
-        listOfFavoriteMovieIDs = new ArrayList<>();
+        //listOfFavoriteMovieIDs = new ArrayList<>();
+        listOfFavoriteMovieIDs.clear();
+        dataList.clear();
+        //dataList = new ArrayList<>();
+        String sTitle;
+        String sMID;
+        String sRelDate;
+        String sRating;
+        String sOverview;
+        byte[] sByteArray;
+        String sYear;
+        Bitmap sImage;
 
         if (data != null && data.moveToFirst()) {
             do {
-                String mID = data.getString(data.getColumnIndex(
+                sTitle = data.getString(data.getColumnIndex(FavMoviesContract.FMovieEntry.COLUMN_TITLE));
+                sMID = data.getString(data.getColumnIndex(
                         FavMoviesContract.FMovieEntry.COLUMN_MOVIEID));
-                listOfFavoriteMovieIDs.add(mID);
+                sRelDate = data.getString(data.getColumnIndex(
+                        FavMoviesContract.FMovieEntry.COLUMN_RELEASEDATE));
+                sYear = getYear(sRelDate);
+                sRating = data.getString(data.getColumnIndex(
+                        FavMoviesContract.FMovieEntry.COLUMN_RATING));
+                sOverview = data.getString(data.getColumnIndex(
+                        FavMoviesContract.FMovieEntry.COLUMN_RATING));
+                sByteArray = data.getBlob(data.getColumnIndex(
+                        FavMoviesContract.FMovieEntry.COLUMN_IMAGE));
+                sImage = getBitmapFromByte(sByteArray);
+
+                listOfFavoriteMovieIDs.add(sMID);
+                OfflineFavMovieDetails movieDetails = new OfflineFavMovieDetails(sTitle, sMID,
+                        sYear, sRating, sOverview, sImage);
+                dataList.add(movieDetails);
+
             } while (data.moveToNext());
             fMovieFlag = 1;
         } else {
             fMovieFlag = 0;
             Toast.makeText(mContext, R.string.taphearttoastmsg, Toast.LENGTH_LONG).show();
         }
+
     }
+//        int id = loader.getId();
+//        switch (id) {
+//            case 1:
+//                listOfFavoriteMovieIDs = new ArrayList<>();
+//
+//                if (data != null && data.moveToFirst()) {
+//                    do {
+//                        String mID = data.getString(data.getColumnIndex(
+//                                FavMoviesContract.FMovieEntry.COLUMN_MOVIEID));
+//                        listOfFavoriteMovieIDs.add(mID);
+//                    } while (data.moveToNext());
+//                    fMovieFlag = 1;
+//                } else {
+//                    fMovieFlag = 0;
+//                    Toast.makeText(mContext, R.string.taphearttoastmsg, Toast.LENGTH_LONG).show();
+//                }
+//                break;
+//            case 2:
+//                break;
+//
+//
+//        }
+//    }
 
     @Override
     public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
         logAndAppend("onLoaderReset");
+    }
+
+    public void offlineDataFetch() {
+
+
+    }
+
+    public String getYear(String relDate) {
+        String[] parseYear = relDate.split("-");
+        return parseYear[0];
+
+    }
+
+    public static Bitmap getBitmapFromByte(byte[] image) {
+        return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 
 }

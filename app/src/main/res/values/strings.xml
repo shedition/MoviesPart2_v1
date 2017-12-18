@@ -4,6 +4,7 @@
     <string name="mostpopular">Most popular</string>
     <string name="highestrated">Top rated</string>
     <string name="favorites">My Favorite Movies</string>
+    <string name="trashMenu">Trash can</string>
     <string name="markAsFavorite">Mark As Favorite</string>
     <string name="taphearttoastmsg">Tap a movie and tap the heart icon to favorite the movie.</string>
     <string name="noTrailer">No trailers available.</string>

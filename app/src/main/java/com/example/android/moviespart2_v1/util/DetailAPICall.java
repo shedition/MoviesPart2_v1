@@ -80,7 +80,6 @@ public class DetailAPICall {
         callRuntimeAPI();
         callTrailerAPI();
         callReviewAPI();
-        Toast.makeText(mContext, "Movie ID = " + movieID, Toast.LENGTH_LONG).show();
     }
 
     public DetailAPICall() {
@@ -231,7 +230,6 @@ public class DetailAPICall {
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            Toast.makeText(mContext, "OK button clicked", Toast.LENGTH_LONG).show();
                         }
                     });
 
@@ -241,7 +239,7 @@ public class DetailAPICall {
 
         } else if (error instanceof ParseError) {
             Toast.makeText(mContext, "Parse error!",
-                    Toast.LENGTH_LONG).show();
+                    Toast.LENGTH_SHORT).show();
         }
 
         VolleyLog.d(TAG, "Error: " + error.getMessage());
@@ -251,27 +249,7 @@ public class DetailAPICall {
     public ArrayList<Trailer> getTrailerArrayList(){
         return trailerArrayList;
     }
-
-
 }
 
 
-//    public boolean shareTrailer(){
-//        if (trailerArrayList.size() >= 1){
-//            String pageUrl = "vnd.youtube://" + trailerArrayList.get(0).getTrailerID();
-//            Intent intent = new Intent(android.content.Intent.ACTION_SEND);
-//            intent.setType("text/plain");
-//            intent.putExtra(Intent.EXTRA_TEXT, pageUrl);
-//
-//            try {
-//                startActivity(Intent.createChooser(intent, "Select an action"));
-//            }catch (ActivityNotFoundException e) {
-//                Toast.makeText(mContext, "Sorry. Unable to share at this time.", Toast.LENGTH_LONG).show();
-//                return false;
-//            }
-//
-//        }
-//        return true;
-//
-//    }
 

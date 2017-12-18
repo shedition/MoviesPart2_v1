@@ -66,6 +66,10 @@ public class MovieActivity extends AppCompatActivity implements
     private static final String ON_SAVEINSTANCESTATE = "onSaveInstanceState";
 
     private static final int LOADER_ID = 0;
+    private static final String SAVED_STATE = "state";
+    private boolean state = false;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,32 +104,44 @@ public class MovieActivity extends AppCompatActivity implements
         mYearOfRelease.setText(mSelectedMovie.getReleaseYear());
         mUserRating.setText(mSelectedMovie.getVoteAvg());
         mOverview.setText(mSelectedMovie.getOverview());
+        state = true;
 
-        if (savedInstanceState != null && savedInstanceState.containsKey("mFavorite")) {
-            Log.d(TAG, "viewTag = ");
-
-            //int viewTag = Integer.valueOf(savedInstanceState.getInt("mFavorite"));
-            int favtag = savedInstanceState.getInt("mFavorite");
-
-            if (favtag == R.drawable.icons8_heart_outline_red) {
-                mFavorite.setImageResource(R.drawable.icons8_heart_outline_red);
-                mFavorite.setTag(R.drawable.icons8_heart_outline_red);
-                buttonState = 1;
-            } else {
-                mFavorite.setImageResource(R.drawable.icons8_heart_outline_white);
-                mFavorite.setTag(R.drawable.icons8_heart_outline_white);
-                buttonState = 0;
-            }
-
-            Toast.makeText(getBaseContext(), "savedInstanceState called", Toast.LENGTH_LONG).show();
-
-        } else {
-            loaderLog("initLoader called in savedInstanceState");
-            getSupportLoaderManager().initLoader(LOADER_ID, null, this);
-
+        if (savedInstanceState != null && savedInstanceState.getBoolean(SAVED_STATE) == true){
+            Toast.makeText(mContext, "State Saved", Toast.LENGTH_SHORT).show();
             DetailAPICall detailAPICall = new DetailAPICall(mContext, mSelectedMovie.getID(), mRuntime,
                     mRVTrailer, mRVReview);
         }
+
+        getSupportLoaderManager().initLoader(LOADER_ID, null, this);
+        DetailAPICall detailAPICall = new DetailAPICall(mContext, mSelectedMovie.getID(), mRuntime,
+                    mRVTrailer, mRVReview);
+
+
+//        if (savedInstanceState != null && savedInstanceState.containsKey("mFavorite")) {
+//            Log.d(TAG, "viewTag = ");
+//
+//            //int viewTag = Integer.valueOf(savedInstanceState.getInt("mFavorite"));
+//            int favtag = savedInstanceState.getInt("mFavorite");
+//
+//            if (favtag == R.drawable.icons8_heart_outline_red) {
+//                mFavorite.setImageResource(R.drawable.icons8_heart_outline_red);
+//                mFavorite.setTag(R.drawable.icons8_heart_outline_red);
+//                buttonState = 1;
+//            } else {
+//                mFavorite.setImageResource(R.drawable.icons8_heart_outline_white);
+//                mFavorite.setTag(R.drawable.icons8_heart_outline_white);
+//                buttonState = 0;
+//            }
+//
+//            Toast.makeText(getBaseContext(), "savedInstanceState called", Toast.LENGTH_LONG).show();
+//
+//        } else {
+//            loaderLog("initLoader called in savedInstanceState");
+//            getSupportLoaderManager().initLoader(LOADER_ID, null, this);
+//
+//            DetailAPICall detailAPICall = new DetailAPICall(mContext, mSelectedMovie.getID(), mRuntime,
+//                    mRVTrailer, mRVReview);
+//        }
     }
 
     public void onClickAddFavorite(View view) {
@@ -147,13 +163,7 @@ public class MovieActivity extends AppCompatActivity implements
             buttonState = 1;
 
             if (cursor.getCount() == 0) {
-                Toast.makeText(mContext, "First insert", Toast.LENGTH_LONG).show();
                 insertFavMovie();
-            } else if (cursor.getCount() == 1) {
-                Toast.makeText(mContext, "Movie already in database", Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(mContext, "Something's wrong. There is more than one record with the same movie ID",
-                        Toast.LENGTH_LONG).show();
             }
 
         } else {
@@ -165,7 +175,6 @@ public class MovieActivity extends AppCompatActivity implements
             } else if (cursor.getCount() == 1){
                 //delete from db
                 getContentResolver().delete(mUri, null, null);
-                Toast.makeText(mContext, "Movie deleted", Toast.LENGTH_LONG).show();
 
             } else {
                 Toast.makeText(mContext, "Something's wrong", Toast.LENGTH_LONG).show();
@@ -201,7 +210,6 @@ public class MovieActivity extends AppCompatActivity implements
 
         if (uri != null) {
             Log.d(TAG, "Heart: uri is not null");
-            Toast.makeText(getBaseContext(), "uri.toString = " + uri.toString(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -267,12 +275,17 @@ public class MovieActivity extends AppCompatActivity implements
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         logAndAppend(ON_SAVEINSTANCESTATE);
+        outState.putBoolean(SAVED_STATE, false);
 
-        int favoriteTag = ((Integer) mFavorite.getTag()).intValue();
-        outState.putInt("mFavorite", favoriteTag);
-        Log.d(TAG, "onSaveInstanceState is called. favoriteTag = " + favoriteTag);
+//        int favoriteTag = ((Integer) mFavorite.getTag()).intValue();
+//        outState.putInt("mFavorite", favoriteTag);
+//        Log.d(TAG, "onSaveInstanceState is called. favoriteTag = " + favoriteTag);
+    }
 
-
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState){
+        super.onRestoreInstanceState(savedInstanceState);
+        state = savedInstanceState.getBoolean(SAVED_STATE);
     }
 
     private void logAndAppend(String lifecycleEvent) {
@@ -352,28 +365,7 @@ public class MovieActivity extends AppCompatActivity implements
     public void onLoaderReset(Loader<Cursor> loader) {
         loaderLog("onLoaderReset");
         Log.d(TAG, "onLoaderReset");
-        Toast.makeText(mContext, "onLoaderReset", Toast.LENGTH_LONG).show();
 
     }
 
-    public boolean shareTrailer(){
-        DetailAPICall getFirstTrailer = new DetailAPICall();
-        ArrayList<Trailer> trailerArrayList = getFirstTrailer.getTrailerArrayList();
-        if (trailerArrayList.size() >= 1){
-            String pageUrl = "vnd.youtube://" + trailerArrayList.get(0).getTrailerID();
-            Intent intent = new Intent(android.content.Intent.ACTION_SEND);
-            intent.setType("text/plain");
-            intent.putExtra(Intent.EXTRA_TEXT, pageUrl);
-
-            try {
-                startActivity(Intent.createChooser(intent, "Share:"));
-            }catch (ActivityNotFoundException e) {
-                Toast.makeText(mContext, "Sorry. Unable to share at this time.", Toast.LENGTH_LONG).show();
-                return false;
-            }
-
-        }
-        return true;
-
-    }
 }

@@ -27,6 +27,8 @@
             android:parentActivityName=".MainActivity"/>
         <activity android:name=".FavoriteMovieActivity"
             android:parentActivityName=".MainActivity"/>
+        <activity android:name=".OfflineActivity"
+            android:parentActivityName=".MainActivity"/>
         <provider
             android:name="com.example.android.moviespart2_v1.data.AppContentProvider"
             android:authorities="com.example.android.moviespart2_v1"
