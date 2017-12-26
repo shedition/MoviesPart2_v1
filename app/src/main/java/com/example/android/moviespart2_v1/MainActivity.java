@@ -105,14 +105,18 @@ public class MainActivity extends AppCompatActivity {
     private static final String SORT_TYPE = "SortType";
     private static String sortType;
     private boolean firstResume = true;
-    private String currSelection = "popular";
+    private String currSelection;
 
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
 
+    private int lastVisiblePos;
+    private Menu mOptionsMenu;
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        mOptionsMenu = menu;
 
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(com.example.android.moviespart2_v1.R.menu.menu_main, menu);
@@ -152,10 +156,39 @@ public class MainActivity extends AppCompatActivity {
         mItemImage = (ImageView) findViewById(com.example.android.moviespart2_v1.R.id.item_image);
         requestQueue = VolleySingleton.getInstance(this).getRequestQueue();
         pref = getApplication().getSharedPreferences("MenuOptions", MODE_APPEND);
-        editor = pref.edit();
-        editor.putString("menu", "popular");
-        editor.commit();
-        volleyJsonObjectRequest(mPopURL);
+        if (savedInstanceState != null) {
+            if (savedInstanceState.getString(SORT_TYPE).equals("popular")) {
+                editor = pref.edit();
+                editor.putString("menu", "popular");
+                editor.commit();
+                volleyJsonObjectRequest(mPopURL);
+            } else {
+                editor = pref.edit();
+                editor.putString("menu", "highestRated");
+                editor.commit();
+                volleyJsonObjectRequest(mTopRatedURL);
+                invalidateOptionsMenu();
+            }
+        } else {
+            editor = pref.edit();
+            editor.putString("menu", "popular");
+            editor.commit();
+            volleyJsonObjectRequest(mPopURL);
+        }
+
+    }
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu){
+        if (pref.getString("menu", "").equals("popular")) {
+            popItem.setChecked(true);
+            getSupportActionBar().setTitle(getString(R.string.popular_action_bar));
+        } else {
+            ratedItem.setChecked(true);
+            getSupportActionBar().setTitle(getString(R.string.top_rated_action_bar));
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+
     }
 
 
@@ -163,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
         logAndAppend(ON_START);
 
     }
@@ -179,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
                     item.setChecked(false);
                 else item.setChecked(true);
                 getSupportActionBar().setTitle(getString(R.string.popular_action_bar));
-                currSelection = "popular";
+ //               currSelection = "popular";
                 editor.putString("menu", "popular");
                 editor.commit();
                 hideTrashMenu = true;
@@ -190,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
                 if (item.isChecked())
                     item.setChecked(false);
                 else item.setChecked(true);
-                currSelection = "highestRated";
+//                currSelection = "highestRated";
                 getSupportActionBar().setTitle(getString(R.string.top_rated_action_bar));
                 editor.putString("menu", "highestRated");
                 editor.commit();
@@ -222,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
 //        savedInstanceState.putString("priorMenuSelection", prevSelection);
 //            savedInstanceState.putString("currentMenuSelection", currSelection);
+        currSelection = pref.getString("menu", "");
         savedInstanceState.putString(SORT_TYPE, currSelection);
         Log.d(TAG, "currSelection in onSave = " + currSelection);
 
@@ -316,12 +351,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+//        if (pref.getString("menu", "").equals("highestRated")){
+//            ratedItem.setChecked(true);
+//        }
+        mGridLayoutManager.scrollToPosition(lastVisiblePos);
         logAndAppend(ON_RESUME);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        lastVisiblePos = mGridLayoutManager.findFirstCompletelyVisibleItemPosition();
         logAndAppend(ON_PAUSE);
     }
 
@@ -347,14 +387,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "NO match in shared pref");
             }
         }
-//        sortType = getIntent().getExtras().getString(SORT_TYPE);
-//        if (sortType.equals("popular")){
-//            volleyJsonObjectRequest(mPopURL);
-//        } else if (sortType.equals("highestRated")){
-//            volleyJsonObjectRequest(mTopRatedURL);
-//        } else {
-//            Log.d(TAG, "No match on SortType.");
-//        }
+
         logAndAppend(ON_RESTART);
     }
 

@@ -1,7 +1,9 @@
 package com.example.android.moviespart2_v1;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,8 +27,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MovieH
 
         private ImageView mItemImage;
         private static final String MOVIE_KEY = "MOVIE";
+        private static final String SORTTYPE = "SORT_TYPE";
+        private SharedPreferences pref;
+        private Context context;
+        private String sortType;
         private Movie mMovie;
-
 
 
         public MovieHolder (View v){
@@ -38,9 +43,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MovieH
 
         @Override
         public void onClick(View v){
-            Context context = itemView.getContext();
+            context = itemView.getContext();
+            findSortType();
             Intent showMovieIntent = new Intent(context, MovieActivity.class);
             showMovieIntent.putExtra(MOVIE_KEY, mMovie);
+            showMovieIntent.putExtra(SORTTYPE, sortType);
             context.startActivity(showMovieIntent);
         }
 
@@ -48,6 +55,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MovieH
             mMovie = movie;
             Picasso.with(mItemImage.getContext()).load(movie.getPosterImagePath()).into(mItemImage);
             Log.v("bindMovie", "after Picasso");
+        }
+
+        public void findSortType(){
+            pref = context.getApplicationContext().getSharedPreferences("MenuOptions", Context.MODE_APPEND);
+            sortType = pref.getString("menu", "");
         }
 
     }

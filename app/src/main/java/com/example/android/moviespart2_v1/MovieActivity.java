@@ -54,6 +54,7 @@ public class MovieActivity extends AppCompatActivity implements
     private RecyclerView mRVTrailer;
     private RecyclerView mRVReview;
     private static final String MOVIE_KEY = "MOVIE";
+    private static final String SORTTYPE = "SORT_TYPE";
     private static final String F_MOVIE_KEY = "FMOVIE";
     private static final String TAG = "MovieActivity";
     private Context mContext;
@@ -71,6 +72,7 @@ public class MovieActivity extends AppCompatActivity implements
     private static final int LOADER_ID = 0;
     private static final String SAVED_STATE = "state";
     private boolean state = false;
+    private String mSortSelection;
 
 
     @Override
@@ -78,9 +80,11 @@ public class MovieActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         logAndAppend(ON_CREATE);
         setContentView(com.example.android.moviespart2_v1.R.layout.activity_movie);
-
-
         mSelectedMovie = (Movie) getIntent().getExtras().getSerializable(MOVIE_KEY);
+        mSortSelection = getIntent().getExtras().getString(SORTTYPE);
+        if (mSortSelection.equals("highestRated")){
+            getSupportActionBar().setTitle(R.string.top_rated_action_bar);
+        }
         mMovieImageView = (ImageView) findViewById(R.id.imageViewPoster);
         Picasso.with(this).load(mSelectedMovie.getPosterImagePath()).into(mMovieImageView);
         mContext = getApplicationContext();
