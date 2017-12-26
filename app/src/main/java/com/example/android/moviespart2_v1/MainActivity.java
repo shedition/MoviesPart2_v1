@@ -351,9 +351,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-//        if (pref.getString("menu", "").equals("highestRated")){
-//            ratedItem.setChecked(true);
-//        }
         mGridLayoutManager.scrollToPosition(lastVisiblePos);
         logAndAppend(ON_RESUME);
     }
@@ -368,6 +365,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        lastVisiblePos = mGridLayoutManager.findFirstCompletelyVisibleItemPosition();
         logAndAppend(ON_STOP);
     }
 
@@ -376,11 +374,11 @@ public class MainActivity extends AppCompatActivity {
         super.onRestart();
         if (pref.contains("menu")) {
             if (pref.getString("menu", "").equals("popular")) {
-                volleyJsonObjectRequest(mPopURL);
+//                volleyJsonObjectRequest(mPopURL);
                 popItem.setChecked(true);
                 getSupportActionBar().setTitle(getString(R.string.popular_action_bar));
             } else if (pref.getString("menu", "").equals("highestRated")) {
-                volleyJsonObjectRequest(mTopRatedURL);
+//                volleyJsonObjectRequest(mTopRatedURL);
                 ratedItem.setChecked(true);
                 getSupportActionBar().setTitle(getString(R.string.top_rated_action_bar));
             } else {
