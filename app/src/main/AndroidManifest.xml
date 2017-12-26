@@ -3,8 +3,8 @@
     package="com.example.android.moviespart2_v1">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -13,8 +13,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.example.android.moviespart2_v1.MainActivity"
-            android:launchMode="singleTask">
+        <activity
+            android:name="com.example.android.moviespart2_v1.MainActivity"
+            android:launchMode="singleTop">
+
             <!-- support API level 15 or lower -->
 
             <intent-filter>
@@ -23,12 +25,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.example.android.moviespart2_v1.MovieActivity"
-            android:parentActivityName=".MainActivity"/>
-        <activity android:name=".FavoriteMovieActivity"
-            android:parentActivityName=".MainActivity"/>
-        <activity android:name=".OfflineActivity"
-            android:parentActivityName=".MainActivity"/>
+        <activity
+            android:name="com.example.android.moviespart2_v1.MovieActivity"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".FMovieActivity"
+            android:label="Favorites"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".FavoriteMovieActivity"
+            android:label="Favorites"
+            android:parentActivityName=".FMovieActivity" />
+        <activity
+            android:name=".OfflineActivity"
+            android:parentActivityName=".FMovieActivity" />
+
         <provider
             android:name="com.example.android.moviespart2_v1.data.AppContentProvider"
             android:authorities="com.example.android.moviespart2_v1"

@@ -1,5 +1,6 @@
 package com.example.android.moviespart2_v1;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
@@ -55,6 +56,12 @@ public class FavoriteMovieActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie);
+        ActionBar actionBar = this.getActionBar();
+        if (actionBar != null) {
+//            actionBar.setHomeButtonEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+//            actionBar.setTitle("My Favorite Movies");
+        }
         mFSelectedMovie = (FavoriteMovie) getIntent().getExtras().getSerializable(F_MOVIE_KEY);
         mMovieImageView = (ImageView) findViewById(R.id.imageViewPoster);
         Picasso.with(this).load(mFSelectedMovie.getmPosterPath()).into(mMovieImageView);

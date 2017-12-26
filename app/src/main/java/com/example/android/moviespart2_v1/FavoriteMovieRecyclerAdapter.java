@@ -45,10 +45,6 @@ public class FavoriteMovieRecyclerAdapter extends RecyclerView.Adapter<FavoriteM
             context.startActivity(showMovieIntent);
         }
 
-//        @Override
-//        public boolean onLongClick(View v){
-//
-//        }
 
         public void bindMovie(FavoriteMovie fMovie) {
             favoriteMovie = fMovie;

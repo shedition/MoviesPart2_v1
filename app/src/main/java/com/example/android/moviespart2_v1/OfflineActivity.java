@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -36,12 +37,13 @@ public class OfflineActivity extends AppCompatActivity{
         setContentView(R.layout.activity_movie);
         oFSelectedMovie = (OfflineFavMovieDetails) getIntent().getExtras().getSerializable(O_MOVIE_KEY);
         oMovieImageView = (ImageView) findViewById(R.id.imageViewPoster);
-        oMovieImageView.setImageBitmap(oFSelectedMovie.getImage());
-        mContext = getApplicationContext();
+                mContext = getApplicationContext();
         oMovieTitle = (TextView) findViewById(R.id.movieTitle);
         oYearOfRelease = (TextView) findViewById(R.id.year);
         oRuntime = (TextView) findViewById(R.id.runtime);
         oUserRating = (TextView) findViewById(R.id.rating);
+        oFavorite = (ImageView) findViewById(R.id.button);
+        oFavorite.setVisibility(View.GONE);
         oOverview = (TextView) findViewById(R.id.synopsis);
         mRVTrailer = (RecyclerView) findViewById(R.id.rvTrailers);
         LinearLayoutManager layoutManagerTrailer = new LinearLayoutManager(this,
@@ -60,9 +62,7 @@ public class OfflineActivity extends AppCompatActivity{
         oYearOfRelease.setText(oFSelectedMovie.getReleaseYear());
         oUserRating.setText(oFSelectedMovie.getRating());
         oOverview.setText(oFSelectedMovie.getOverview());
-
-
-
+        oMovieImageView.setImageBitmap(oFSelectedMovie.getImage());
 
     }
 }

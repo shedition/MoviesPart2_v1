@@ -1,5 +1,8 @@
 <resources>
-    <string name="app_name">Pop Movies Part 2</string>
+    <string name="app_name">Pop Movies</string>
+    <string name="popular_action_bar">Pop Movies</string>
+    <string name="top_rated_action_bar">Top Rated</string>
+    <string name="fav_action_bar">My Favorite</string>
     <string name="sortby">Sort</string>
     <string name="mostpopular">Most popular</string>
     <string name="highestrated">Top rated</string>
@@ -7,6 +10,7 @@
     <string name="trashMenu">Trash can</string>
     <string name="markAsFavorite">Mark As Favorite</string>
     <string name="taphearttoastmsg">Tap a movie and tap the heart icon to favorite the movie.</string>
+    <string name="longSwipeToDelete">To delete, do a long swipe from left to right, or right to left.</string>
     <string name="noTrailer">No trailers available.</string>
     <string name="noReview">No reviews available.</string>
     <string name="api_key">18b233b28421e37df0172410e899946d</string>

@@ -17,7 +17,7 @@ public class OfflineFavMovieDetails implements Serializable{
     private String aRating;
     private String aOverview;
     private byte[] aByteArray;
-    private Bitmap anImage;
+    transient Bitmap anImage;
 
     public OfflineFavMovieDetails(String aTitle, String aMID, String aYear, String aRating,
                                   String aOverview, Bitmap anImage){

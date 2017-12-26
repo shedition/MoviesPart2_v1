@@ -12,6 +12,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.app.NavUtils;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +22,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -70,12 +73,12 @@ public class MovieActivity extends AppCompatActivity implements
     private boolean state = false;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         logAndAppend(ON_CREATE);
         setContentView(com.example.android.moviespart2_v1.R.layout.activity_movie);
+
 
         mSelectedMovie = (Movie) getIntent().getExtras().getSerializable(MOVIE_KEY);
         mMovieImageView = (ImageView) findViewById(R.id.imageViewPoster);
@@ -106,7 +109,7 @@ public class MovieActivity extends AppCompatActivity implements
         mOverview.setText(mSelectedMovie.getOverview());
         state = true;
 
-        if (savedInstanceState != null && savedInstanceState.getBoolean(SAVED_STATE) == true){
+        if (savedInstanceState != null && savedInstanceState.getBoolean(SAVED_STATE) == true) {
             Toast.makeText(mContext, "State Saved", Toast.LENGTH_SHORT).show();
             DetailAPICall detailAPICall = new DetailAPICall(mContext, mSelectedMovie.getID(), mRuntime,
                     mRVTrailer, mRVReview);
@@ -114,7 +117,7 @@ public class MovieActivity extends AppCompatActivity implements
 
         getSupportLoaderManager().initLoader(LOADER_ID, null, this);
         DetailAPICall detailAPICall = new DetailAPICall(mContext, mSelectedMovie.getID(), mRuntime,
-                    mRVTrailer, mRVReview);
+                mRVTrailer, mRVReview);
 
 
 //        if (savedInstanceState != null && savedInstanceState.containsKey("mFavorite")) {
@@ -144,6 +147,24 @@ public class MovieActivity extends AppCompatActivity implements
 //        }
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                Intent upIntent = NavUtils.getParentActivityIntent(this);
+                if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
+                    TaskStackBuilder.create(this)
+                            .addNextIntentWithParentStack(upIntent)
+                            .startActivities();
+                } else {
+
+                    NavUtils.navigateUpFromSameTask(this);
+                }
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     public void onClickAddFavorite(View view) {
 
         mFavorite = (ImageView) view;
@@ -170,9 +191,9 @@ public class MovieActivity extends AppCompatActivity implements
             mFavorite.setImageResource(R.drawable.icons8_heart_outline_white);
             mFavorite.setTag(R.drawable.icons8_heart_outline_white);
             buttonState = 0;
-            if (cursor.getCount() == 0){
+            if (cursor.getCount() == 0) {
                 Toast.makeText(mContext, "Movie not in db. Do nothing", Toast.LENGTH_LONG).show();
-            } else if (cursor.getCount() == 1){
+            } else if (cursor.getCount() == 1) {
                 //delete from db
                 getContentResolver().delete(mUri, null, null);
 
@@ -215,22 +236,10 @@ public class MovieActivity extends AppCompatActivity implements
 
     public byte[] getBitmapAsByteArray(Bitmap bitmap) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 0, outputStream);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
         return outputStream.toByteArray();
     }
 
-    public Bitmap convertImageToBitmap() {
-        mMovieImageView.setDrawingCacheEnabled(true);
-        Bitmap bitmap = Bitmap.createBitmap(mMovieImageView.getLayoutParams().width,
-                mMovieImageView.getLayoutParams().height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        mMovieImageView.layout(0, 0, mMovieImageView.getLayoutParams().width,
-                mMovieImageView.getLayoutParams().height);
-        mMovieImageView.draw(canvas);
-        return bitmap;
-
-
-    }
 
     @Override
     protected void onStart() {
@@ -283,7 +292,7 @@ public class MovieActivity extends AppCompatActivity implements
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState){
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         state = savedInstanceState.getBoolean(SAVED_STATE);
     }
