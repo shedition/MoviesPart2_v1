@@ -9,7 +9,7 @@
     <string name="favorites">My Favorite Movies</string>
     <string name="trashMenu">Trash can</string>
     <string name="markAsFavorite">Mark As Favorite</string>
-    <string name="taphearttoastmsg">Currently, there are no favorite moves. Tap a movie and the heart icon to mark the movie as favorite.</string>
+    <string name="taphearttoastmsg">To add a movie to your favorite list, tap a movie and the heart icon to mark the movie as favorite.</string>
     <string name="longSwipeToDelete">To delete, do a long swipe from left to right, or right to left.</string>
     <string name="noTrailer">No trailers available.</string>
     <string name="noReview">No reviews available.</string>

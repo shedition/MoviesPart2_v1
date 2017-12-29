@@ -9,9 +9,11 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v7.app.AppCompatActivity;
@@ -22,7 +24,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.NetworkError;
@@ -71,6 +75,7 @@ public class FMovieActivity extends AppCompatActivity implements
     private FavoriteMovieRecyclerAdapter fAdapter;
     private OfflineRecyclerAdapter oAdapter;
     private ImageView fItemImage;
+    private View mainview;
     public static RequestQueue requestQueue;
     private static final int LOADER_ID = 1;
     private int lastVisiblePos;
@@ -118,6 +123,7 @@ public class FMovieActivity extends AppCompatActivity implements
         fGridLayoutManager = new GridLayoutManager(this, 2);
         fRecyclerview.setLayoutManager(fGridLayoutManager);
         fItemImage = (ImageView) findViewById(R.id.item_image);
+        mainview = findViewById(R.id.main_layout_id);
         requestQueue = VolleySingleton.getInstance(this).getRequestQueue();
         pref = getApplication().getSharedPreferences("MenuOptions", MODE_APPEND);
         editor = pref.edit();
@@ -285,7 +291,19 @@ public class FMovieActivity extends AppCompatActivity implements
         Log.d(TAG, "movieIDList in V = " + movieIDList.size());
 
         if (movieIDList.size() == 0) {
-            Toast.makeText(mContext, R.string.taphearttoastmsg, Toast.LENGTH_SHORT).show();
+            final Snackbar snackbar = Snackbar
+                    .make(mainview, R.string.taphearttoastmsg, Snackbar.LENGTH_INDEFINITE)
+                    .setAction("OK", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                        }
+                    });
+            View snackbarView = snackbar.getView();
+            snackbarView.setBackgroundColor(Color.YELLOW);
+            TextView snackbarTextView = (TextView) snackbar.getView()
+                    .findViewById(android.support.design.R.id.snackbar_text);
+            snackbarTextView.setMaxLines(3);
+            snackbar.show();
             fRecyclerview.setAdapter(fAdapter);
             return false;
         } else {
