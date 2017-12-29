@@ -85,5 +85,9 @@ public class FavoriteMovie implements Serializable {
         }
     }
 
+    public int getTitleLength(){
+        return mTitle.length();
+    }
+
 
 }

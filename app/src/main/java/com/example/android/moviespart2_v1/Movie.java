@@ -64,6 +64,10 @@ public class Movie implements Serializable{
         return mTitle;
     }
 
+    public int getTitleLength(){
+        return mTitle.length();
+    }
+
     public String getPosterImagePath()
     {
         Log.d(TAG, "posterImageURL");

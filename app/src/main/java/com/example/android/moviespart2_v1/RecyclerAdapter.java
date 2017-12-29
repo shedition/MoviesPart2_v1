@@ -29,8 +29,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MovieH
         private static final String MOVIE_KEY = "MOVIE";
         private static final String SORTTYPE = "SORT_TYPE";
         private SharedPreferences pref;
+        private SharedPreferences.Editor editor;
         private Context context;
         private String sortType;
+        private int itemPos;
         private Movie mMovie;
 
 
@@ -45,14 +47,16 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MovieH
         public void onClick(View v){
             context = itemView.getContext();
             findSortType();
+            storeItemPos();
             Intent showMovieIntent = new Intent(context, MovieActivity.class);
             showMovieIntent.putExtra(MOVIE_KEY, mMovie);
             showMovieIntent.putExtra(SORTTYPE, sortType);
             context.startActivity(showMovieIntent);
         }
 
-        public void bindMovie (Movie movie){
+        public void bindMovie (Movie movie, int pos){
             mMovie = movie;
+            itemPos = pos;
             Picasso.with(mItemImage.getContext()).load(movie.getPosterImagePath()).into(mItemImage);
             Log.v("bindMovie", "after Picasso");
         }
@@ -60,6 +64,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MovieH
         public void findSortType(){
             pref = context.getApplicationContext().getSharedPreferences("MenuOptions", Context.MODE_APPEND);
             sortType = pref.getString("menu", "");
+        }
+
+        public void storeItemPos(){
+            editor = pref.edit();
+            editor.putInt("itemPosition", itemPos);
+            editor.commit();
         }
 
     }
@@ -80,7 +90,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MovieH
     public void onBindViewHolder(RecyclerAdapter.MovieHolder holder, int position){
 
         Movie itemMovie = mMovies.get(position);
-        holder.bindMovie(itemMovie);
+        holder.bindMovie(itemMovie, position);
     }
 
     @Override

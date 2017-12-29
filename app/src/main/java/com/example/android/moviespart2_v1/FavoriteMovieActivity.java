@@ -12,6 +12,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -58,9 +59,7 @@ public class FavoriteMovieActivity extends AppCompatActivity {
         setContentView(R.layout.activity_movie);
         ActionBar actionBar = this.getActionBar();
         if (actionBar != null) {
-//            actionBar.setHomeButtonEnabled(true);
             actionBar.setDisplayHomeAsUpEnabled(true);
-//            actionBar.setTitle("My Favorite Movies");
         }
         mFSelectedMovie = (FavoriteMovie) getIntent().getExtras().getSerializable(F_MOVIE_KEY);
         mMovieImageView = (ImageView) findViewById(R.id.imageViewPoster);
@@ -87,6 +86,9 @@ public class FavoriteMovieActivity extends AppCompatActivity {
                 layoutManagerReview.getOrientation());
         dividerItemDecoration.setDrawable(mContext.getResources().getDrawable(R.drawable.line_divider));
         mRVReview.addItemDecoration(dividerItemDecoration);
+        if (mFSelectedMovie.getTitleLength() > 18){
+            mMovieTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 25f);
+        }
 
         mMovieTitle.setText(mFSelectedMovie.getmTitle());
         mYearOfRelease.setText(mFSelectedMovie.getmYearOfRelease());

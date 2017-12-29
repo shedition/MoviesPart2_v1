@@ -22,6 +22,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -82,7 +83,7 @@ public class MovieActivity extends AppCompatActivity implements
         setContentView(com.example.android.moviespart2_v1.R.layout.activity_movie);
         mSelectedMovie = (Movie) getIntent().getExtras().getSerializable(MOVIE_KEY);
         mSortSelection = getIntent().getExtras().getString(SORTTYPE);
-        if (mSortSelection.equals("highestRated")){
+        if (mSortSelection.equals("topRated")){
             getSupportActionBar().setTitle(R.string.top_rated_action_bar);
         }
         mMovieImageView = (ImageView) findViewById(R.id.imageViewPoster);
@@ -107,6 +108,9 @@ public class MovieActivity extends AppCompatActivity implements
                 layoutManagerReview.getOrientation());
         dividerItemDecoration.setDrawable(mContext.getResources().getDrawable(R.drawable.line_divider));
         mRVReview.addItemDecoration(dividerItemDecoration);
+        if (mSelectedMovie.getTitleLength() > 18){
+            mMovieTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 25f);
+        }
         mMovieTitle.setText(mSelectedMovie.getTitle());
         mYearOfRelease.setText(mSelectedMovie.getReleaseYear());
         mUserRating.setText(mSelectedMovie.getVoteAvg());
@@ -123,32 +127,6 @@ public class MovieActivity extends AppCompatActivity implements
         DetailAPICall detailAPICall = new DetailAPICall(mContext, mSelectedMovie.getID(), mRuntime,
                 mRVTrailer, mRVReview);
 
-
-//        if (savedInstanceState != null && savedInstanceState.containsKey("mFavorite")) {
-//            Log.d(TAG, "viewTag = ");
-//
-//            //int viewTag = Integer.valueOf(savedInstanceState.getInt("mFavorite"));
-//            int favtag = savedInstanceState.getInt("mFavorite");
-//
-//            if (favtag == R.drawable.icons8_heart_outline_red) {
-//                mFavorite.setImageResource(R.drawable.icons8_heart_outline_red);
-//                mFavorite.setTag(R.drawable.icons8_heart_outline_red);
-//                buttonState = 1;
-//            } else {
-//                mFavorite.setImageResource(R.drawable.icons8_heart_outline_white);
-//                mFavorite.setTag(R.drawable.icons8_heart_outline_white);
-//                buttonState = 0;
-//            }
-//
-//            Toast.makeText(getBaseContext(), "savedInstanceState called", Toast.LENGTH_LONG).show();
-//
-//        } else {
-//            loaderLog("initLoader called in savedInstanceState");
-//            getSupportLoaderManager().initLoader(LOADER_ID, null, this);
-//
-//            DetailAPICall detailAPICall = new DetailAPICall(mContext, mSelectedMovie.getID(), mRuntime,
-//                    mRVTrailer, mRVReview);
-//        }
     }
 
     @Override

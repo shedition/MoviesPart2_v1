@@ -22,9 +22,6 @@ public class FavoriteMovieRecyclerAdapter extends RecyclerView.Adapter<FavoriteM
 
     private static final String TAG = "FAdapter";
     private ArrayList<FavoriteMovie> mFavoriteMovies;
-//    private AdapterView.OnItemClickListener onItemClickListener;
-//    private AdapterView.OnItemLongClickListener onItemLongClickListener;
-//    private OfflineFavMovieDetails offlineFavMovieDetails;
 
     public static class VHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private ImageView mImage;

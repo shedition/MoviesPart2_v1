@@ -22,6 +22,7 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.example.android.moviespart2_v1.R;
 import com.example.android.moviespart2_v1.Review;
 import com.example.android.moviespart2_v1.ReviewRecyclerAdapter;
 import com.example.android.moviespart2_v1.Trailer;
@@ -65,7 +66,7 @@ public class DetailAPICall {
     private static final String API_KEY_PARAMETER = "?api_key=";
     private static final String VID_ENDPOINT = "/videos";
     private static final String REVIEW_ENDPOINT = "/reviews";
-    private static final String myAPIKey = "18b233b28421e37df0172410e899946d";
+    private static String myAPIKey;
 
     public DetailAPICall(Context context, String movieid, TextView tv, RecyclerView rv, RecyclerView
             rvReview) {
@@ -74,6 +75,7 @@ public class DetailAPICall {
         runtimeTxtview = tv;
         trailerRV = rv;
         reviewRV = rvReview;
+        myAPIKey = mContext.getString(R.string.api_key);
         buildRuntimeURL();
         buildTrailerURL();
         buildReviewURL();

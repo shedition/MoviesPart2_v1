@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v7.app.AppCompatActivity;
@@ -34,6 +35,7 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.PoolingByteArrayOutputStream;
 import com.example.android.moviespart2_v1.data.FavMoviesContract;
 
 import org.json.JSONException;
@@ -62,30 +64,26 @@ public class FMovieActivity extends AppCompatActivity implements
 
     private RecyclerView fRecyclerview;
     private GridLayoutManager fGridLayoutManager;
-
-
-    //    private List<String> movieIDList = new ArrayList<>();
     private static ArrayList<String> movieIDList = new ArrayList<>();
     private static ArrayList<OfflineFavMovieDetails> dataList = new ArrayList<>();
-    //    private ArrayList<String> movieIDList = new ArrayList<>();
-//    private ArrayList<OfflineFavMovieDetails> dataList = new ArrayList<>();
+
     private ArrayList<FavoriteMovie> mFavPosterImages = new ArrayList<>();
     private FavoriteMovieRecyclerAdapter fAdapter;
     private OfflineRecyclerAdapter oAdapter;
     private ImageView fItemImage;
-    private String menuSelection;
     public static RequestQueue requestQueue;
     private static final int LOADER_ID = 1;
-    //    private String SORT_TYPE_P;
-//    private String SORT_TYPE_C;
+    private int lastVisiblePos;
+    private static final String CURR_POS = "CurrentPos";
+    private static final String SAVED_LAYOUT_MANAGER = "savedLayoutMgr";
+    private Parcelable layoutMgrSavedState;
+    private static Bundle mBundleRVState;
+
     private static final String SORT_TYPE = "SortType";
     private String sortSelection;
 
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
-//    private String popSort = "sort by popularity";
-//    private String highestRatedSort = "sort by highest rated";
-
 
     private static final String ON_CREATE = "onCreate";
     private static final String ON_START = "onStart";
@@ -110,6 +108,8 @@ public class FMovieActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         logAndAppend(ON_CREATE);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.icons8_home_outline);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mContext = getApplicationContext();
         mActivity = FMovieActivity.this;
         MY_API_KEY = mContext.getString(R.string.api_key);
@@ -121,27 +121,9 @@ public class FMovieActivity extends AppCompatActivity implements
         requestQueue = VolleySingleton.getInstance(this).getRequestQueue();
         pref = getApplication().getSharedPreferences("MenuOptions", MODE_APPEND);
         editor = pref.edit();
-
-//        Intent intentExtras = getIntent();
-//
-//        Bundle extrasBundle = intentExtras.getExtras();
-//        if(!extrasBundle.isEmpty()){
-////            boolean hasSortByString = extrasBundle.containsKey("sort_type") ;
-//            SORT_TYPE_P = extrasBundle.getString("sort_type");
-//        } else {
-//            Log.d(TAG, "Bundle passed in from Intent is empty");
-//        }
         getSupportLoaderManager().initLoader(LOADER_ID, null, FMovieActivity.this);
-        Log.d(TAG, "movieIDList = C " + movieIDList.size());
-        Log.d(TAG, "dataList = C " + dataList.size());
-//        volleyGetFavoriteMovies();
-//        if (volleyGetFavoriteMovies()){
-//            Log.d(TAG, "volley success ");
-//        } else {
-//            Log.d(TAG, "volley failed");
-//        }
-
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -150,60 +132,48 @@ public class FMovieActivity extends AppCompatActivity implements
         Bundle bundle;
 
         switch (id) {
+            case android.R.id.home:
+                Log.d(TAG, "Selected -- Home");
+                editor.putString("menu", "popular");
+                editor.commit();
+                intent = new Intent(this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+                return true;
             case R.id.sortby_popularity:
+                Log.d(TAG, "Selected -- pop");
+
                 item.setChecked(true);
                 editor.putString("menu", "popular");
                 editor.commit();
-
-//                if (item.isChecked())
-//                    item.setChecked(false);
-//                else item.setChecked(true);
                 sortSelection = "popular";
                 intent = new Intent(this, MainActivity.class);
                 intent.putExtra(SORT_TYPE, sortSelection);
                 intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-//                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
-//                intentExtras = new Intent(this, MainActivity.class);
-//                bundle = new Bundle();
-//                bundle.putString("sort_type", SORT_TYPE_C);
-//                intentExtras.putExtra("MENU_ITEM", menuSelection);
-//                startActivity(intentExtras);
                 return true;
             case R.id.sortby_highestrated:
+                Log.d(TAG, "Selected -- top");
+
                 item.setChecked(true);
-                editor.putString("menu", "highestRated");
+                editor.putString("menu", "topRated");
                 editor.commit();
-//                if (item.isChecked())
-//                    item.setChecked(false);
-//                else item.setChecked(true);
                 sortSelection = "highestRated";
                 intent = new Intent(this, MainActivity.class);
                 intent.putExtra(SORT_TYPE, sortSelection);
                 intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-//                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                editor.putString("menu", "highestRated");
-//                editor.commit();
-
                 startActivity(intent);
-//                intentExtras = new Intent(this, MainActivity.class);
-//                bundle = new Bundle();
-//                bundle.putString("sort_type", SORT_TYPE_C);
-//                intentExtras.putExtra("MENU_ITEM", menuSelection);
-//                startActivity(intentExtras);
                 return true;
             case R.id.favorites:
+                Log.d(TAG, "Selected -- fav");
                 if (item.isChecked())
                     item.setChecked(false);
                 else item.setChecked(true);
                 getSupportLoaderManager().restartLoader(LOADER_ID, null, FMovieActivity.this);
-//                volleyGetFavoriteMovies();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
-
         }
-
     }
 
 
@@ -285,8 +255,6 @@ public class FMovieActivity extends AppCompatActivity implements
 
         } else {
             Log.d(TAG, "Cursor is null or cant be move to first");
-
-//            Toast.makeText(mContext, R.string.taphearttoastmsg, Toast.LENGTH_SHORT).show();
         }
         volleyGetFavoriteMovies();
 
@@ -315,8 +283,6 @@ public class FMovieActivity extends AppCompatActivity implements
 
         final Context context = this;
         Log.d(TAG, "movieIDList in V = " + movieIDList.size());
-
-//        getSupportLoaderManager().initLoader(LOADER_ID, null, FMovieActivity.this);
 
         if (movieIDList.size() == 0) {
             Toast.makeText(mContext, R.string.taphearttoastmsg, Toast.LENGTH_SHORT).show();
@@ -392,11 +358,8 @@ public class FMovieActivity extends AppCompatActivity implements
     protected void onResume() {
         super.onResume();
         logAndAppend(ON_RESUME);
-
-        getSupportLoaderManager().restartLoader(LOADER_ID, null, this);
-//        volleyGetFavoriteMovies();
+        fGridLayoutManager.scrollToPosition(lastVisiblePos);
     }
-
 
     @Override
     protected void onStart() {
@@ -407,16 +370,17 @@ public class FMovieActivity extends AppCompatActivity implements
 
     }
 
-
     @Override
     protected void onPause() {
         super.onPause();
+        lastVisiblePos = fGridLayoutManager.findFirstCompletelyVisibleItemPosition();
         logAndAppend(ON_PAUSE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        lastVisiblePos = fGridLayoutManager.findFirstCompletelyVisibleItemPosition();
         logAndAppend(ON_STOP);
     }
 
@@ -424,6 +388,7 @@ public class FMovieActivity extends AppCompatActivity implements
     protected void onRestart() {
         super.onRestart();
         favItem.setChecked(true);
+        fGridLayoutManager.scrollToPosition(lastVisiblePos);
         logAndAppend(ON_RESTART);
     }
 
@@ -436,6 +401,4 @@ public class FMovieActivity extends AppCompatActivity implements
     private void logAndAppend(String lifecycleEvent) {
         Log.d(TAG, "Lifecycle Event FMovie: " + lifecycleEvent);
     }
-
-
 }

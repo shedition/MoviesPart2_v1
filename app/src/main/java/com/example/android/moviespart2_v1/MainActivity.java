@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -56,9 +57,22 @@ import static android.media.CamcorderProfile.get;
 
 /**
  * This project uses Volley for network requests and
- * Recyclerview GridlayoutManager to lay out poster images.
- * To run this application, please specify your own API key in
- * strings.xml file.
+ * Recyclerview GridlayoutManager for displaying the poster images.
+ * The implementation of this app uses multiple activities: MainActivity is used to
+ * display popular and top rated sorts. MovieActivity is used to display the movie details screen.
+ * FMovieActivity is used to display user's favorites movies, and FavoriteMovieActivity displays
+ * the details of the favorite movie. OfflineActivity is called from onClick() in OfflineRecyclerAdapter
+ * when there is no network connectivity detected and will render the details of the tapped movie
+ * based on the data in the database.
+ *
+ * Using multiple activities to implement this app is far from ideal
+ * as it results in a fair amount of redundant code. It is the author's intention to redesign the app
+ * in the future using fragments and broadcast receivers.
+ *
+ * App tested mainly with Pixel API 25.
+ *
+ * To run this application, please specify your own API key in <string name="api_key"> in
+ * res/values/strings.xml.
  */
 
 public class MainActivity extends AppCompatActivity {
@@ -93,19 +107,17 @@ public class MainActivity extends AppCompatActivity {
     private static final String ON_DESTROY = "onDestroy";
     private static final String ON_SAVE_INSTANCE_STATE = "onSaveInstanceState";
 
-
-    private boolean menuIsInflated;
-    private static final int LOADER_ID = 1;
-    private static final int LOADER_ID_2 = 2;
     private boolean hideTrashMenu = true;
     private int count = 0;
     private MenuItem trashMenuItem;
     private MenuItem popItem;
     private MenuItem ratedItem;
     private static final String SORT_TYPE = "SortType";
+    private static final String CURRENT_POS = "CurrentPosition";
     private static String sortType;
     private boolean firstResume = true;
     private String currSelection;
+    private Parcelable state;
 
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
@@ -158,15 +170,19 @@ public class MainActivity extends AppCompatActivity {
         pref = getApplication().getSharedPreferences("MenuOptions", MODE_APPEND);
         if (savedInstanceState != null) {
             if (savedInstanceState.getString(SORT_TYPE).equals("popular")) {
+                lastVisiblePos = savedInstanceState.getInt(CURRENT_POS);
                 editor = pref.edit();
                 editor.putString("menu", "popular");
                 editor.commit();
                 volleyJsonObjectRequest(mPopURL);
+                mGridLayoutManager.scrollToPositionWithOffset(lastVisiblePos, 0);
             } else {
+                lastVisiblePos = savedInstanceState.getInt(CURRENT_POS);
                 editor = pref.edit();
-                editor.putString("menu", "highestRated");
+                editor.putString("menu", "topRated");
                 editor.commit();
                 volleyJsonObjectRequest(mTopRatedURL);
+                mGridLayoutManager.scrollToPositionWithOffset(lastVisiblePos, 0);
                 invalidateOptionsMenu();
             }
         } else {
@@ -191,16 +207,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        logAndAppend(ON_START);
-
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -213,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
                     item.setChecked(false);
                 else item.setChecked(true);
                 getSupportActionBar().setTitle(getString(R.string.popular_action_bar));
- //               currSelection = "popular";
                 editor.putString("menu", "popular");
                 editor.commit();
                 hideTrashMenu = true;
@@ -224,9 +229,8 @@ public class MainActivity extends AppCompatActivity {
                 if (item.isChecked())
                     item.setChecked(false);
                 else item.setChecked(true);
-//                currSelection = "highestRated";
                 getSupportActionBar().setTitle(getString(R.string.top_rated_action_bar));
-                editor.putString("menu", "highestRated");
+                editor.putString("menu", "topRated");
                 editor.commit();
                 hideTrashMenu = true;
                 trashMenuItem.setVisible(false);
@@ -241,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                     item.setChecked(true);
                 }
                 Intent intent = new Intent(MainActivity.this, FMovieActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+//                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
 
                 return true;
@@ -254,26 +258,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
-//        savedInstanceState.putString("priorMenuSelection", prevSelection);
-//            savedInstanceState.putString("currentMenuSelection", currSelection);
         currSelection = pref.getString("menu", "");
+        lastVisiblePos = mGridLayoutManager.findFirstCompletelyVisibleItemPosition();
         savedInstanceState.putString(SORT_TYPE, currSelection);
+        savedInstanceState.putInt(CURRENT_POS, lastVisiblePos);
         Log.d(TAG, "currSelection in onSave = " + currSelection);
 
         logAndAppend("onSaveInstanceState");
-//        super.onSaveInstanceState(savedInstanceState);
-
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-//            previousSelection = savedInstanceState.getInt(PRE_SELECTION);
         currSelection = savedInstanceState.getString(SORT_TYPE);
+        lastVisiblePos = savedInstanceState.getInt(CURRENT_POS);
         Log.d(TAG, "currSelection in Restore = " + currSelection);
-//            currentSelection = savedInstanceState.getInt(CUR_SELECTION);
         logAndAppend("onRestoreInstanceState");
-//        super.onRestoreInstanceState(savedInstanceState);
     }
 
     private void volleyJsonObjectRequest(String mURL) {
@@ -347,45 +347,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        logAndAppend(ON_START);
+
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mGridLayoutManager.scrollToPosition(lastVisiblePos);
         logAndAppend(ON_RESUME);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        lastVisiblePos = mGridLayoutManager.findFirstCompletelyVisibleItemPosition();
+        lastVisiblePos = mGridLayoutManager.findLastVisibleItemPosition();
         logAndAppend(ON_PAUSE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        lastVisiblePos = mGridLayoutManager.findFirstCompletelyVisibleItemPosition();
+        lastVisiblePos = mGridLayoutManager.findLastVisibleItemPosition();
         logAndAppend(ON_STOP);
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        if (pref.contains("menu")) {
-            if (pref.getString("menu", "").equals("popular")) {
-//                volleyJsonObjectRequest(mPopURL);
-                popItem.setChecked(true);
-                getSupportActionBar().setTitle(getString(R.string.popular_action_bar));
-            } else if (pref.getString("menu", "").equals("highestRated")) {
-//                volleyJsonObjectRequest(mTopRatedURL);
-                ratedItem.setChecked(true);
-                getSupportActionBar().setTitle(getString(R.string.top_rated_action_bar));
-            } else {
-                Log.d(TAG, "NO match in shared pref");
-            }
-        }
-
+        restoreRVPosition();
         logAndAppend(ON_RESTART);
     }
 
@@ -399,111 +391,25 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Lifecycle Event: " + lifecycleEvent);
     }
 
-//    @Override
-//    public AsyncTaskLoader<Cursor> onCreateLoader(int id, final Bundle loaderArgs) {
-//        return new AsyncTaskLoader<Cursor>(this) {
-//
-//            Cursor mFMovieData = null;
-//
-//            @Override
-//            protected void onStartLoading() {
-//                if (mFMovieData != null) {
-//                    deliverResult(mFMovieData);
-//                } else {
-//                    forceLoad();
-//                }
-//            }
-//
-//            @Override
-//            public Cursor loadInBackground() {
-//
-//                try {
-//                    return getContentResolver().query(FavMoviesContract.FMovieEntry.CONTENT_URI,
-//                            null,
-//                            null,
-//                            null,
-//                            null);
-//                } catch (Exception e) {
-//                    Log.e(TAG, "Failed to asynchronously load data.");
-//                    e.printStackTrace();
-//                    return null;
-//                }
-//            }
-//
-//            public void deliverResult(Cursor data) {
-//                mFMovieData = data;
-//                super.deliverResult(data);
-//            }
-//        };
-//    }
-//
-//
-//    @Override
-//    public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor data) {
-//        //listOfFavoriteMovieIDs = new ArrayList<>();
-//        listOfFavoriteMovieIDs.clear();
-//        dataList.clear();
-//        //dataList = new ArrayList<>();
-//        String sTitle;
-//        String sMID;
-//        String sRelDate;
-//        String sRating;
-//        String sOverview;
-//        byte[] sByteArray;
-//        String sYear;
-//        Bitmap sImage;
-//
-//        if (data != null && data.moveToFirst()) {
-//            do {
-//                sTitle = data.getString(data.getColumnIndex(FavMoviesContract.FMovieEntry.COLUMN_TITLE));
-//                sMID = data.getString(data.getColumnIndex(
-//                        FavMoviesContract.FMovieEntry.COLUMN_MOVIEID));
-//                sRelDate = data.getString(data.getColumnIndex(
-//                        FavMoviesContract.FMovieEntry.COLUMN_RELEASEDATE));
-//                sYear = getYear(sRelDate);
-//                sRating = data.getString(data.getColumnIndex(
-//                        FavMoviesContract.FMovieEntry.COLUMN_RATING));
-//                sOverview = data.getString(data.getColumnIndex(
-//                        FavMoviesContract.FMovieEntry.COLUMN_RATING));
-//                sByteArray = data.getBlob(data.getColumnIndex(
-//                        FavMoviesContract.FMovieEntry.COLUMN_IMAGE));
-//                sImage = getBitmapFromByte(sByteArray);
-//
-//                listOfFavoriteMovieIDs.add(sMID);
-//                OfflineFavMovieDetails movieDetails = new OfflineFavMovieDetails(sTitle, sMID,
-//                        sYear, sRating, sOverview, sImage);
-//                dataList.add(movieDetails);
-//
-//            } while (data.moveToNext());
-//            fMovieFlag = 1;
-//        } else {
-//            fMovieFlag = 0;
-//            Toast.makeText(mContext, R.string.taphearttoastmsg, Toast.LENGTH_LONG).show();
-//        }
-//
-//    }
-//
-//    @Override
-//    public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
-//        logAndAppend("onLoaderReset");
-//    }
-//
-//    public void offlineDataFetch() {
-//
-//
-//    }
-//
-//    public String getYear(String relDate) {
-//        String[] parseYear = relDate.split("-");
-//        return parseYear[0];
-//
-//    }
-//
-//    public static Bitmap getBitmapFromByte(byte[] image) {
-//
-//        return BitmapFactory.decodeByteArray(image, 0, image.length);
-//
-//
-//    }
+    private void restoreRVPosition(){
+        if (pref.contains("menu")) {
+            if (pref.getString("menu", "").equals("popular")) {
+                Log.d(TAG, "onRestart - popular");
+                popItem.setChecked(true);
+                getSupportActionBar().setTitle(getString(R.string.popular_action_bar));
+                volleyJsonObjectRequest(mPopURL);
+                mGridLayoutManager.scrollToPositionWithOffset(lastVisiblePos, 0);
+            } else if (pref.getString("menu", "").equals("topRated")) {
+                Log.d(TAG, "onRestart - topRated");
+                ratedItem.setChecked(true);
+                getSupportActionBar().setTitle(getString(R.string.top_rated_action_bar));
+                volleyJsonObjectRequest(mTopRatedURL);
+                mGridLayoutManager.scrollToPositionWithOffset(lastVisiblePos, 0);
+            } else {
+                Log.d(TAG, "NO match in shared pref");
+            }
+        }
+    }
+
 }
 
