@@ -1,15 +1,12 @@
 package com.example.android.moviespart2_v1.util;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,10 +31,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-
-import static android.R.attr.start;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
-import static com.example.android.moviespart2_v1.R.id.recyclerView;
 
 /**
  * Created by waiyi on 11/26/2017.

@@ -1,29 +1,17 @@
 package com.example.android.moviespart2_v1;
 
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.net.Uri;
-import android.os.Parcelable;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -40,19 +28,13 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.example.android.moviespart2_v1.data.FavMoviesContract;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import static android.R.attr.data;
-import static android.R.attr.defaultHeight;
-import static android.R.attr.id;
-import static android.icu.lang.UCharacter.JoiningGroup.E;
 import static android.media.CamcorderProfile.get;
 
 /**
@@ -97,18 +79,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
-    /* Constant values for the names of each respective lifecycle callback */
-    private static final String ON_CREATE = "onCreate";
-    private static final String ON_START = "onStart";
-    private static final String ON_RESUME = "onResume";
-    private static final String ON_PAUSE = "onPause";
-    private static final String ON_STOP = "onStop";
-    private static final String ON_RESTART = "onRestart";
-    private static final String ON_DESTROY = "onDestroy";
-    private static final String ON_SAVE_INSTANCE_STATE = "onSaveInstanceState";
-
     private boolean hideTrashMenu = true;
-    private int count = 0;
     private MenuItem trashMenuItem;
     private MenuItem popItem;
     private MenuItem ratedItem;
@@ -117,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
     private static String sortType;
     private boolean firstResume = true;
     private String currSelection;
-    private Parcelable state;
 
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
@@ -151,11 +121,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(com.example.android.moviespart2_v1.R.layout.activity_main);
-        logAndAppend(ON_CREATE);
-
         mContext = getApplicationContext();
         mActivity = MainActivity.this;
-
 
         MY_API_KEY = mContext.getString(R.string.api_key);
         mPopURL = BASE_URL + POP_ENDPOINT + API_KEY_PARAMETER + MY_API_KEY;
@@ -210,7 +177,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        logAndAppend("onOptionsItemSelected");
         firstResume = false;
 
         switch (id) {
@@ -245,7 +211,6 @@ public class MainActivity extends AppCompatActivity {
                     item.setChecked(true);
                 }
                 Intent intent = new Intent(MainActivity.this, FMovieActivity.class);
-//                intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                 startActivity(intent);
 
                 return true;
@@ -262,9 +227,6 @@ public class MainActivity extends AppCompatActivity {
         lastVisiblePos = mGridLayoutManager.findFirstCompletelyVisibleItemPosition();
         savedInstanceState.putString(SORT_TYPE, currSelection);
         savedInstanceState.putInt(CURRENT_POS, lastVisiblePos);
-        Log.d(TAG, "currSelection in onSave = " + currSelection);
-
-        logAndAppend("onSaveInstanceState");
     }
 
     @Override
@@ -272,8 +234,6 @@ public class MainActivity extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
         currSelection = savedInstanceState.getString(SORT_TYPE);
         lastVisiblePos = savedInstanceState.getInt(CURRENT_POS);
-        Log.d(TAG, "currSelection in Restore = " + currSelection);
-        logAndAppend("onRestoreInstanceState");
     }
 
     private void volleyJsonObjectRequest(String mURL) {
@@ -284,13 +244,10 @@ public class MainActivity extends AppCompatActivity {
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        //Log.d(TAG, response.toString());
                         try {
                             mPosterImages.clear();
                             JSONObject obj = new JSONObject(response.toString());
                             JSONArray arr = obj.getJSONArray("results");
-                            Log.d(TAG, arr.toString());
-                            //loop thru the JSONArray "results"
                             for (int i = 0; i < arr.length(); i++) {
                                 JSONObject movieResults = arr.getJSONObject(i);
                                 Movie mMovie = new Movie(movieResults);
@@ -350,63 +307,50 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        logAndAppend(ON_START);
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        logAndAppend(ON_RESUME);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         lastVisiblePos = mGridLayoutManager.findLastVisibleItemPosition();
-        logAndAppend(ON_PAUSE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         lastVisiblePos = mGridLayoutManager.findLastVisibleItemPosition();
-        logAndAppend(ON_STOP);
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
         restoreRVPosition();
-        logAndAppend(ON_RESTART);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        logAndAppend(ON_DESTROY);
-    }
-
-    private void logAndAppend(String lifecycleEvent) {
-        Log.d(TAG, "Lifecycle Event: " + lifecycleEvent);
     }
 
     private void restoreRVPosition(){
         if (pref.contains("menu")) {
             if (pref.getString("menu", "").equals("popular")) {
-                Log.d(TAG, "onRestart - popular");
                 popItem.setChecked(true);
                 getSupportActionBar().setTitle(getString(R.string.popular_action_bar));
                 volleyJsonObjectRequest(mPopURL);
                 mGridLayoutManager.scrollToPositionWithOffset(lastVisiblePos, 0);
             } else if (pref.getString("menu", "").equals("topRated")) {
-                Log.d(TAG, "onRestart - topRated");
                 ratedItem.setChecked(true);
                 getSupportActionBar().setTitle(getString(R.string.top_rated_action_bar));
                 volleyJsonObjectRequest(mTopRatedURL);
                 mGridLayoutManager.scrollToPositionWithOffset(lastVisiblePos, 0);
             } else {
-                Log.d(TAG, "NO match in shared pref");
             }
         }
     }

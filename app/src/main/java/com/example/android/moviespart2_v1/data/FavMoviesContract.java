@@ -1,7 +1,6 @@
 package com.example.android.moviespart2_v1.data;
 
 import android.content.ContentUris;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.BaseColumns;
 

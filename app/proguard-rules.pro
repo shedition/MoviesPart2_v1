@@ -23,3 +23,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+
+## Square Picasso specific rules ##
+-dontwarn com.squareup.picasso.**
+-dontwarn com.squareup.okhttp.internal.**

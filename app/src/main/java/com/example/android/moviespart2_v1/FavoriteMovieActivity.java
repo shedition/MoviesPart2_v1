@@ -2,19 +2,14 @@ package com.example.android.moviespart2_v1;
 
 import android.app.ActionBar;
 import android.content.Context;
-import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.TypedValue;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -43,15 +38,6 @@ public class FavoriteMovieActivity extends AppCompatActivity {
     private static final String F_MOVIE_KEY = "FMOVIE";
     private Context mContext;
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//
-//        MenuInflater inflater = getMenuInflater();
-//        inflater.inflate(R.menu.menu_favoritemovies, menu);
-//        menu.findItem(R.id.favorites).setChecked(true);
-//        return true;
-//
-//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +58,6 @@ public class FavoriteMovieActivity extends AppCompatActivity {
         mUserRating = (TextView) findViewById(R.id.rating);
         mFavorite = (ImageView) findViewById(R.id.button);
         mFavorite.setVisibility(View.GONE);
-//        mFavorite.setImageResource(R.drawable.icons8_heart_outline_red);
         mOverview = (TextView) findViewById(R.id.synopsis);
         mRVTrailer = (RecyclerView) findViewById(R.id.rvTrailers);
         LinearLayoutManager layoutManagerTrailer = new LinearLayoutManager(this,

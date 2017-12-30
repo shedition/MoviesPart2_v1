@@ -1,10 +1,8 @@
 package com.example.android.moviespart2_v1;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -12,7 +10,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -39,14 +36,12 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.PoolingByteArrayOutputStream;
 import com.example.android.moviespart2_v1.data.FavMoviesContract;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -79,24 +74,12 @@ public class FMovieActivity extends AppCompatActivity implements
     public static RequestQueue requestQueue;
     private static final int LOADER_ID = 1;
     private int lastVisiblePos;
-    private static final String CURR_POS = "CurrentPos";
-    private static final String SAVED_LAYOUT_MANAGER = "savedLayoutMgr";
-    private Parcelable layoutMgrSavedState;
-    private static Bundle mBundleRVState;
 
     private static final String SORT_TYPE = "SortType";
     private String sortSelection;
 
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
-
-    private static final String ON_CREATE = "onCreate";
-    private static final String ON_START = "onStart";
-    private static final String ON_RESUME = "onResume";
-    private static final String ON_PAUSE = "onPause";
-    private static final String ON_STOP = "onStop";
-    private static final String ON_RESTART = "onRestart";
-    private static final String ON_DESTROY = "onDestroy";
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -112,7 +95,6 @@ public class FMovieActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        logAndAppend(ON_CREATE);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.icons8_home_outline);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mContext = getApplicationContext();
@@ -139,7 +121,6 @@ public class FMovieActivity extends AppCompatActivity implements
 
         switch (id) {
             case android.R.id.home:
-                Log.d(TAG, "Selected -- Home");
                 editor.putString("menu", "popular");
                 editor.commit();
                 intent = new Intent(this, MainActivity.class);
@@ -147,8 +128,6 @@ public class FMovieActivity extends AppCompatActivity implements
                 startActivity(intent);
                 return true;
             case R.id.sortby_popularity:
-                Log.d(TAG, "Selected -- pop");
-
                 item.setChecked(true);
                 editor.putString("menu", "popular");
                 editor.commit();
@@ -159,8 +138,6 @@ public class FMovieActivity extends AppCompatActivity implements
                 startActivity(intent);
                 return true;
             case R.id.sortby_highestrated:
-                Log.d(TAG, "Selected -- top");
-
                 item.setChecked(true);
                 editor.putString("menu", "topRated");
                 editor.commit();
@@ -171,7 +148,6 @@ public class FMovieActivity extends AppCompatActivity implements
                 startActivity(intent);
                 return true;
             case R.id.favorites:
-                Log.d(TAG, "Selected -- fav");
                 if (item.isChecked())
                     item.setChecked(false);
                 else item.setChecked(true);
@@ -231,10 +207,7 @@ public class FMovieActivity extends AppCompatActivity implements
         String sYear;
         Bitmap sImage;
 
-        Log.d(TAG, "data count = " + data.getCount());
-
         if (data != null && data.moveToFirst()) {
-            Log.d(TAG, "I am here");
             do {
                 sTitle = data.getString(data.getColumnIndex(FavMoviesContract.FMovieEntry.COLUMN_TITLE));
                 sMID = data.getString(data.getColumnIndex(
@@ -254,8 +227,6 @@ public class FMovieActivity extends AppCompatActivity implements
                 OfflineFavMovieDetails movieDetails = new OfflineFavMovieDetails(sTitle, sMID,
                         sYear, sRating, sOverview, sImage);
                 dataList.add(movieDetails);
-                Log.d(TAG, "movieIDList = L " + movieIDList.size());
-                Log.d(TAG, "dataList = L " + dataList.size());
 
             } while (data.moveToNext());
 
@@ -288,7 +259,6 @@ public class FMovieActivity extends AppCompatActivity implements
     public boolean volleyGetFavoriteMovies() {
 
         final Context context = this;
-        Log.d(TAG, "movieIDList in V = " + movieIDList.size());
 
         if (movieIDList.size() == 0) {
             final Snackbar snackbar = Snackbar
@@ -323,7 +293,6 @@ public class FMovieActivity extends AppCompatActivity implements
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        Log.d(TAG, "mFavPosterImages = " + mFavPosterImages.size());
                         fAdapter = new FavoriteMovieRecyclerAdapter(mFavPosterImages);
                         fRecyclerview.setAdapter(fAdapter);
                     }
@@ -375,31 +344,24 @@ public class FMovieActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        logAndAppend(ON_RESUME);
         fGridLayoutManager.scrollToPosition(lastVisiblePos);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-//        getSupportLoaderManager().initLoader(LOADER_ID, null, FMovieActivity.this);
-//        favItem.setChecked(true);
-        logAndAppend(ON_START);
-
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         lastVisiblePos = fGridLayoutManager.findFirstCompletelyVisibleItemPosition();
-        logAndAppend(ON_PAUSE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         lastVisiblePos = fGridLayoutManager.findFirstCompletelyVisibleItemPosition();
-        logAndAppend(ON_STOP);
     }
 
     @Override
@@ -407,16 +369,11 @@ public class FMovieActivity extends AppCompatActivity implements
         super.onRestart();
         favItem.setChecked(true);
         fGridLayoutManager.scrollToPosition(lastVisiblePos);
-        logAndAppend(ON_RESTART);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        logAndAppend(ON_DESTROY);
     }
 
-    private void logAndAppend(String lifecycleEvent) {
-        Log.d(TAG, "Lifecycle Event FMovie: " + lifecycleEvent);
-    }
 }

@@ -27,18 +27,18 @@
         </activity>
         <activity
             android:name="com.example.android.moviespart2_v1.MovieActivity"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName="com.example.android.moviespart2_v1.MainActivity" />
         <activity
-            android:name=".FMovieActivity"
+            android:name="com.example.android.moviespart2_v1.FMovieActivity"
             android:label="Favorites"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName="com.example.android.moviespart2_v1.MainActivity" />
         <activity
-            android:name=".FavoriteMovieActivity"
+            android:name="com.example.android.moviespart2_v1.FavoriteMovieActivity"
             android:label="Favorites"
-            android:parentActivityName=".FMovieActivity" />
+            android:parentActivityName="com.example.android.moviespart2_v1.FMovieActivity" />
         <activity
-            android:name=".OfflineActivity"
-            android:parentActivityName=".FMovieActivity" />
+            android:name="com.example.android.moviespart2_v1.OfflineActivity"
+            android:parentActivityName="com.example.android.moviespart2_v1.FMovieActivity" />
 
         <provider
             android:name="com.example.android.moviespart2_v1.data.AppContentProvider"

@@ -1,8 +1,5 @@
 package com.example.android.moviespart2_v1;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.Serializable;
 
 /**

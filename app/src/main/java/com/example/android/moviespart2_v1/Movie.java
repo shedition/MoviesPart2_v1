@@ -1,6 +1,5 @@
 package com.example.android.moviespart2_v1;
 
-import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 

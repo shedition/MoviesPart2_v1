@@ -1,13 +1,10 @@
 package com.example.android.moviespart2_v1;
 
-import android.content.ActivityNotFoundException;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -34,7 +31,6 @@ import com.example.android.moviespart2_v1.util.DetailAPICall;
 import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 
 /**
  * Created by waiyi on 9/10/2017.
@@ -56,19 +52,9 @@ public class MovieActivity extends AppCompatActivity implements
     private RecyclerView mRVReview;
     private static final String MOVIE_KEY = "MOVIE";
     private static final String SORTTYPE = "SORT_TYPE";
-    private static final String F_MOVIE_KEY = "FMOVIE";
     private static final String TAG = "MovieActivity";
     private Context mContext;
     public static int buttonState = 0;
-
-    private static final String ON_CREATE = "onCreate";
-    private static final String ON_START = "onStart";
-    private static final String ON_RESUME = "onResume";
-    private static final String ON_PAUSE = "onPause";
-    private static final String ON_STOP = "onStop";
-    private static final String ON_RESTART = "onRestart";
-    private static final String ON_DESTROY = "onDestroy";
-    private static final String ON_SAVEINSTANCESTATE = "onSaveInstanceState";
 
     private static final int LOADER_ID = 0;
     private static final String SAVED_STATE = "state";
@@ -79,7 +65,6 @@ public class MovieActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        logAndAppend(ON_CREATE);
         setContentView(com.example.android.moviespart2_v1.R.layout.activity_movie);
         mSelectedMovie = (Movie) getIntent().getExtras().getSerializable(MOVIE_KEY);
         mSortSelection = getIntent().getExtras().getString(SORTTYPE);
@@ -226,51 +211,38 @@ public class MovieActivity extends AppCompatActivity implements
     @Override
     protected void onStart() {
         super.onStart();
-        logAndAppend(ON_START);
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        logAndAppend(ON_RESUME);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        logAndAppend(ON_PAUSE);
     }
 
 
     @Override
     protected void onStop() {
         super.onStop();
-        logAndAppend(ON_STOP);
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        logAndAppend(ON_RESTART);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        logAndAppend(ON_DESTROY);
-
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        logAndAppend(ON_SAVEINSTANCESTATE);
         outState.putBoolean(SAVED_STATE, false);
-
-//        int favoriteTag = ((Integer) mFavorite.getTag()).intValue();
-//        outState.putInt("mFavorite", favoriteTag);
-//        Log.d(TAG, "onSaveInstanceState is called. favoriteTag = " + favoriteTag);
     }
 
     @Override
@@ -279,25 +251,13 @@ public class MovieActivity extends AppCompatActivity implements
         state = savedInstanceState.getBoolean(SAVED_STATE);
     }
 
-    private void logAndAppend(String lifecycleEvent) {
-        Log.d(TAG, "MovieActivity Lifecycle Event: " + lifecycleEvent);
-
-    }
-
-    private void loaderLog(String stage) {
-        Log.d(TAG, "Loader method: " + stage);
-    }
-
-
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        loaderLog("onCreateLoader");
         return new AsyncTaskLoader<Cursor>(this) {
             Cursor mMovieData = null;
 
             @Override
             protected void onStartLoading() {
-                loaderLog("onStartLoading");
                 if (mMovieData != null) {
                     deliverResult(mMovieData);
                 } else {
@@ -307,11 +267,9 @@ public class MovieActivity extends AppCompatActivity implements
 
             @Override
             public Cursor loadInBackground() {
-                loaderLog("loadInBackground");
                 try {
                     Uri uri = FavMoviesContract.FMovieEntry.CONTENT_URI;
                     uri = uri.buildUpon().appendPath(mSelectedMovie.getID()).build();
-                    Log.d(TAG, "Uri.toString == " + uri.toString());
                     return getContentResolver().query(uri,
                             null,
                             null,
@@ -325,7 +283,6 @@ public class MovieActivity extends AppCompatActivity implements
             }
 
             public void deliverResult(Cursor data) {
-                loaderLog("deliverResult");
                 mMovieData = data;
                 super.deliverResult(data);
             }
@@ -334,28 +291,21 @@ public class MovieActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        loaderLog("onLoadFinished");
         if (data.getCount() == 0) {
             mFavorite.setImageResource(R.drawable.icons8_heart_outline_white);
             mFavorite.setTag(R.drawable.icons8_heart_outline_white);
             buttonState = 0;
-            loaderLog("inside onLoadFinished If statement");
         } else if (data.getCount() >= 1) {
             mFavorite.setImageResource(R.drawable.icons8_heart_outline_red);
             mFavorite.setTag(R.drawable.icons8_heart_outline_red);
             buttonState = 1;
-            loaderLog("inside onLoadFinished elseif statement");
 
         } else {
-            Log.d(TAG, "cursor getcount = " + data.getCount());
-            loaderLog("inside onLoadFinished else statement");
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        loaderLog("onLoaderReset");
-        Log.d(TAG, "onLoaderReset");
 
     }
 
